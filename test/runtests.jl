@@ -1,6 +1,2 @@
-using Snowflakes
-using Test
-
-@testset "Snowflakes.jl" begin
-    # Write your tests here.
-end
+using SafeTestsets
+@safetestset "snowflakes test" begin include("testscripts.jl") end
