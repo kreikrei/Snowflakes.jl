@@ -1,5 +1,8 @@
 module Snowflakes
 
-# Write your package code here.
+include("Structures.jl")
+include("Base.jl")
+
+export base,report
 
 end
