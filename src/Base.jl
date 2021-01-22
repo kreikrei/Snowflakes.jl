@@ -1,8 +1,6 @@
 using XLSX
 using DataFrames
 
-include("Structures.jl")
-
 function base(path::String)
     xf = XLSX.readxlsx(path) #READ WORKSHEET
     data = Dict{Symbol,DataFrame}() #DATAFRAME DICT
