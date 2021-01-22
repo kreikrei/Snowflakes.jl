@@ -47,7 +47,7 @@ function base(path::String)
         end
 
         for t in T
-            d[i,t] = last(row[2:ncol(row)-3][t])
+            d[i,t] = row[1,2:ncol(row)-3][t]
         end
     end
 
