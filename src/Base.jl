@@ -11,7 +11,6 @@ function base(path::String)
     end
 
     V = Dict{Int64,vtx}() #INITIATE VERTICES
-
     for v in eachrow(data[:vertices]) #ITERATE OVER DATA
         V[v.id] = vtx(
             v.name , v.type,
@@ -21,7 +20,6 @@ function base(path::String)
     end
 
     K = Dict{Int64,veh}() #INITIATE VEHICLES
-
     for k in eachrow(data[:vehicles]) #ITERATE OVER DATA
         K[k.id] = veh(
             k.name , k.type ,
@@ -39,17 +37,38 @@ function report(res::NamedTuple)
     uniqueVtx = unique([res.V[i].type for i in keys(res.V)])
     uniqueVeh = unique([res.K[k].type for k in keys(res.K)])
 
-    vtxType = DataFrame()
+    vtxType = Dict{String,Vector{Int64}}()
+    for t in uniqueVtx
+        vtxType[t] = sort(collect(keys(filter(p -> last(p).type == t , res.V))))
+    end
+    vehType = Dict{String,Vector{Int64}}()
+    for t in uniqueVeh
+        vehType[t] = sort(collect(keys(filter(p -> last(p).type == t , res.K))))
+    end
+
+    loadp = Vector{Int64}()
+    cover = Vector{Int64}()
+    for k in keys(res.K)
+        for l in res.K[k].loadp
+            push!(loadp,l)
+        end
+        for c in res.K[k].cover
+            push!(cover,c)
+        end
+
+        unique!(loadp)
+        unique!(cover)
+    end
 
     stats = status(
         length(res.V) ,
         length(res.K) ,
         uniqueVtx ,
-        uniqueVeh
-        #vehicle_type_breakdown
-        #vertice_type_breakdown
-        #unique_cover
-        #unique_loadp
+        uniqueVeh ,
+        vtxType ,
+        vehType ,
+        cover ,
+        loadp
     )
 
     return stats

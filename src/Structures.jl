@@ -38,8 +38,8 @@ struct status
     number_of_vehicles::Int64
     unique_vertices_type::Vector{String}
     unique_vehicle_types::Vector{String}
-    #vehicle_type_breakdown::DataFrame
-    #vertice_type_breakdown::DataFrame
-    #unique_cover::Vector{Int64}
-    #unique_loadp::Vector{Int64}
+    vertex_type_breakdown::Dict{String,Vector{Int64}}
+    vehicle_type_breakdown::Dict{String,Vector{Int64}}
+    unique_cover::Vector{Int64}
+    unique_loadp::Vector{Int64}
 end

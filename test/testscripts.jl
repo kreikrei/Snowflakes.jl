@@ -2,6 +2,13 @@ using Snowflakes
 using Test
 
 @testset "Snowflakes.jl" begin
-    @test report(base(joinpath(@__DIR__,"testdata.xlsx"))).number_of_vertices == 46
-    @test report(base(joinpath(@__DIR__,"testdata.xlsx"))).number_of_vehicles == 84
+    path = joinpath(@__DIR__,"testdata.xlsx")
+    res = base(path)
+
+    @test report(res).number_of_vertices == 46
+    @test report(res).number_of_vehicles == 84
+
+    @test isequal(
+        sort(report(res).unique_cover),sort(collect(keys(res.V)))
+    )
 end
