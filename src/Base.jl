@@ -1,8 +1,3 @@
-using XLSX
-using DataFrames
-using JuMP
-using Query
-
 function base(path::String)
     xf = XLSX.readxlsx(path) #READ WORKSHEET
     data = Dict{Symbol,DataFrame}() #DATAFRAME DICT
@@ -19,6 +14,15 @@ function base(path::String)
             v.x , v.y , v.MAX , v.MIN , v.START ,
             v.h
         )
+    end
+
+    dist = JuMP.Containers.DenseAxisArray{Float64}(undef,collect(keys(V)),collect(keys(V)))
+    for i in keys(V), j in keys(V)
+        if i != j
+            dist[i,j] = haversine([V[i].x,V[i].y],[V[j].x,V[j].y],6378.137)
+        else
+            dist[i,j] = 999999999
+        end
     end
 
     K = Dict{Int64,veh}() #INITIATE VEHICLES
@@ -51,7 +55,7 @@ function base(path::String)
         end
     end
 
-    dt = (V=V,K=K,T=T,d=d) #WRAPPING RESULT
+    dt = (V=V,K=K,T=T,d=d,dist=dist) #WRAPPING RESULT
 
     return dt
 end

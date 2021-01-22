@@ -11,4 +11,6 @@ using Test
     @test isequal(
         sort(report(res).unique_cover),sort(collect(keys(res.V)))
     )
+
+    @test res.dist[1,1] == 999999999
 end
