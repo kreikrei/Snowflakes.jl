@@ -1,5 +1,7 @@
 using XLSX
 using DataFrames
+using JuMP
+using Query
 
 function base(path::String)
     xf = XLSX.readxlsx(path) #READ WORKSHEET
@@ -28,7 +30,28 @@ function base(path::String)
         )
     end
 
-    dt = (V=V,K=K) #WRAPPING RESULT
+    T = collect(
+        range(
+            last(data[:periods].start) ,
+            length = last(data[:periods].T) ,
+            step = 1
+        )
+    ) #range starting from starting month for duration
+
+    d = JuMP.Containers.DenseAxisArray{Float64}(undef,collect(keys(V)),T)
+    for i in keys(V)
+        row = @from x in data[:demands] begin
+            @where x.point == i
+            @select x
+            @collect DataFrame
+        end
+
+        for t in T
+            d[i,t] = last(row[2:ncol(row)-3][t])
+        end
+    end
+
+    dt = (V=V,K=K,T=T,d=d) #WRAPPING RESULT
 
     return dt
 end
