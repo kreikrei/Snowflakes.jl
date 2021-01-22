@@ -1,4 +1,8 @@
-function base(path::String)
+# ==============================================================================
+#    BASIC DATA GENERATION
+# ==============================================================================
+
+function base(path::String) #extract from excel
     xf = XLSX.readxlsx(path) #READ WORKSHEET
     data = Dict{Symbol,DataFrame}() #DATAFRAME DICT
 
