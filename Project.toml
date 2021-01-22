@@ -17,6 +17,7 @@ XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0"
 
 [compat]
 Gurobi = "0.9"
+DataFrames = "0.22"
 julia = "1"
 
 [extras]
