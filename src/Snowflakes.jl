@@ -6,7 +6,6 @@ using JuMP
 using Query
 using Distances
 using Random
-using Gurobi
 
 include("Structures.jl")
 include("Base.jl")
