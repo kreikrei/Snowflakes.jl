@@ -2,6 +2,16 @@
 #    BASIC STRUCTURES
 # ==============================================================================
 
+"""
+    MyArray{T,N}
+
+My super awesome array wrapper!
+
+# Fields
+- `data::AbstractArray{T,N}`: stores the array being wrapped
+- `metadata::Dict`: stores metadata about the array
+"""
+
 struct vtx
     #IDENTIFIERS
     name::String
