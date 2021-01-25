@@ -40,10 +40,10 @@ struct veh
     Q::Int64
 
     #COSTS
-    varq::Float64
-    vardq::Float64
-    vard::Float64
-    fix::Float64
+    vx::Float64
+    vl::Float64
+    fp::Float64
+    fd::Float64
 end
 
 struct status
