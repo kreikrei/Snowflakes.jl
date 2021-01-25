@@ -9,6 +9,7 @@ cache:
   - '%USERPROFILE%\.julia\artifacts'
 matrix:
   allow_failures:
+    - julia_version: 1.4
     - julia_version: nightly
 branches:
   only:
