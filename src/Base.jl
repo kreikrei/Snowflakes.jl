@@ -20,14 +20,7 @@ function base(path::String) #extract from excel
         )
     end
 
-    dist = JuMP.Containers.DenseAxisArray{Float64}(undef,collect(keys(V)),collect(keys(V)))
-    for i in keys(V), j in keys(V)
-        if i != j
-            dist[i,j] = haversine([V[i].x,V[i].y],[V[j].x,V[j].y],6378.137)
-        else
-            dist[i,j] = 999999999
-        end
-    end
+    dist = distance(V)
 
     K = Dict{Int64,veh}() #INITIATE VEHICLES
     for k in eachrow(data[:vehicles]) #ITERATE OVER DATA
@@ -103,4 +96,17 @@ function report(res::NamedTuple)
     )
 
     return stats
+end
+
+function distance(V::Dict)
+    dist = JuMP.Containers.DenseAxisArray{Float64}(undef,collect(keys(V)),collect(keys(V)))
+    for i in keys(V), j in keys(V)
+        if i != j
+            dist[i,j] = haversine([V[i].x,V[i].y],[V[j].x,V[j].y],6378.137)
+        else
+            dist[i,j] = 999999999
+        end
+    end
+
+    return dist
 end
