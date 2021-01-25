@@ -1,8 +1,11 @@
-# ==============================================================================
+# =========================================================================
 #    BASIC DATA GENERATION
-# ==============================================================================
+# =========================================================================
 
-function base(path::String) #extract from excel
+const template_data = Ref{Any}(nothing)
+extract() = template_data[] #buat manggil dt default
+
+function base!(path::String) #extract from excel
     xf = XLSX.readxlsx(path) #READ WORKSHEET
     data = Dict{Symbol,DataFrame}() #DATAFRAME DICT
 
@@ -54,10 +57,10 @@ function base(path::String) #extract from excel
 
     res = dt(V,dist,K,T,d) #WRAPPING RESULT TO TYPE dt
 
-    return res
+    return template_data[] = res
 end
 
-function stats(res::dt)
+function stats(res = extract())
     uniqueVtx = unique([res.V[i].type for i in keys(res.V)])
     uniqueVeh = unique([res.K[k].type for k in keys(res.K)])
 
@@ -98,7 +101,7 @@ function stats(res::dt)
     return stats
 end
 
-function initStab(res::dt;slC::Float64,suC::Float64)
+function initStab(res = extract();slC::Float64,suC::Float64)
     slackCoeff = slC
     surpCoeff = suC
     slackLim = abs.(res.d)
@@ -107,7 +110,7 @@ function initStab(res::dt;slC::Float64,suC::Float64)
     return stabilizer(slackCoeff,surpCoeff,slackLim,surpLim)
 end
 
-function root(res::dt;slC::Float64,suC::Float64)
+function root(res = extract();slC::Float64,suC::Float64)
     id = uuid1()
     root = node(
         id, id,
