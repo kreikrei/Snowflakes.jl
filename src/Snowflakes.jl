@@ -6,10 +6,14 @@ using JuMP
 using Query
 using Distances
 using Random
+using UUIDs
 
 include("Structures.jl")
 include("Base.jl")
 
-export base,report
+export base
+export stats
+export initStab
+export root
 
 end

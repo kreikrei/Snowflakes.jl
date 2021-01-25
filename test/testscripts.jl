@@ -1,16 +1,22 @@
 using Snowflakes
 using Test
 
-@testset "Snowflakes.jl" begin
+@testset "Base.jl test" begin
     path = joinpath(@__DIR__,"testdata.xlsx")
     res = base(path)
 
-    @test report(res).number_of_vertices == 46
-    @test report(res).number_of_vehicles == 84
+    @test stats(res).number_of_vertices == 46
+    @test stats(res).number_of_vehicles == 84
 
-    @test isequal(
-        sort(report(res).unique_cover),sort(collect(keys(res.V)))
+    @test isequal( #all in cover_list is in keys(V)
+        sort(stats(res).cover_list),sort(collect(keys(res.V)))
     )
 
-    @test res.dist[1,1] == 999999999
+    idx = rand(collect(keys(res.V))) #random point
+    @test res.dist[idx,idx] == 999999999
+
+    @test initStab(res;slC = 500.0, suC = -500.0).slLim == abs.(res.d)
+    @test initStab(res;slC = 500.0, suC = -500.0).suLim == abs.(res.d)
+
+    @test isa(root(res;slC = 500.0, suC = -500.0),Snowflakes.node)
 end
