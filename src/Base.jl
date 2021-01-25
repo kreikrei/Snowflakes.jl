@@ -14,50 +14,50 @@ function base(path::String) #extract from excel
     V = Dict{Int64,vtx}() #INITIATE VERTICES
     for v in eachrow(data[:vertices]) #ITERATE OVER DATA
         V[v.id] = vtx(
-            v.name , v.type,
-            v.x , v.y , v.MAX , v.MIN , v.START ,
+            v.name, v.type,
+            v.x, v.y, v.MAX, v.MIN, v.START,
             v.h
         )
     end
 
-    dist = distance(V)
+    dist = JuMP.Containers.DenseAxisArray{Float64}(undef, keys(V), keys(V))
+    for i in keys(V), j in keys(V)
+        if i != j
+            dist[i,j] = haversine([V[i].x,V[i].y],[V[j].x,V[j].y],6378.137)
+        else
+            dist[i,j] = 999999999
+        end
+    end
 
     K = Dict{Int64,veh}() #INITIATE VEHICLES
     for k in eachrow(data[:vehicles]) #ITERATE OVER DATA
         K[k.id] = veh(
-            k.name , k.type ,
-            parse.(Int64,split(k.cover)) , parse.(Int64,split(k.loadp)) , k.freq , k.Q ,
-            k.varq , k.vardq , k.vard , k.fix
+            k.name, k.type,
+            parse.(Int64,split(k.cover)), parse.(Int64,split(k.loadp)), k.freq, k.Q,
+            k.vx, k.vl, k.fp, k.fd
         )
     end
 
-    T = collect(
+    T = collect( #range from starting month for duration
         range(
-            last(data[:periods].start) ,
-            length = last(data[:periods].T) ,
+            last(data[:periods].start),
+            length = last(data[:periods].T),
             step = 1
         )
-    ) #range starting from starting month for duration
+    )
 
-    d = JuMP.Containers.DenseAxisArray{Float64}(undef,collect(keys(V)),T)
-    for i in keys(V)
-        row = @from x in data[:demands] begin
-            @where x.point == i
-            @select x
-            @collect DataFrame
-        end
+    d = JuMP.Containers.DenseAxisArray(
+        Array{Float64}(data[:demands][:,string.(T)]), #dataset
+        Array{Int64}(data[:demands].point), #dims 1
+        T #dims 2
+    )
 
-        for t in T
-            d[i,t] = row[1,2:ncol(row)-3][t]
-        end
-    end
+    res = dt(V,dist,K,T,d) #WRAPPING RESULT TO TYPE dt
 
-    dt = (V=V,K=K,T=T,d=d,dist=dist) #WRAPPING RESULT
-
-    return dt
+    return res
 end
 
-function report(res::NamedTuple)
+function stats(res::dt)
     uniqueVtx = unique([res.V[i].type for i in keys(res.V)])
     uniqueVeh = unique([res.K[k].type for k in keys(res.K)])
 
@@ -84,29 +84,38 @@ function report(res::NamedTuple)
         unique!(cover)
     end
 
-    stats = status(
-        length(res.V) ,
-        length(res.K) ,
-        uniqueVtx ,
-        uniqueVeh ,
-        vtxType ,
-        vehType ,
-        cover ,
-        loadp
+    stats = (
+        number_of_vertices = length(res.V),
+        number_of_vehicles = length(res.K),
+        unique_types_vtx = uniqueVtx,
+        unique_types_veh = uniqueVeh,
+        type_breakdown_vtx = vtxType,
+        type_breakdown_veh = vehType,
+        cover_list = cover,
+        loadp_list = loadp
     )
 
     return stats
 end
 
-function distance(V::Dict)
-    dist = JuMP.Containers.DenseAxisArray{Float64}(undef,collect(keys(V)),collect(keys(V)))
-    for i in keys(V), j in keys(V)
-        if i != j
-            dist[i,j] = haversine([V[i].x,V[i].y],[V[j].x,V[j].y],6378.137)
-        else
-            dist[i,j] = 999999999
-        end
-    end
+function initStab(res::dt;slC::Float64,suC::Float64)
+    slackCoeff = slC
+    surpCoeff = suC
+    slackLim = abs.(res.d)
+    surpLim = abs.(res.d)
 
-    return dist
+    return stabilizer(slackCoeff,surpCoeff,slackLim,surpLim)
+end
+
+function root(res::dt;slC::Float64,suC::Float64)
+    id = uuid1()
+    root = node(
+        id, id,
+        res,
+        Vector{bound}(),Vector{col}(),
+        initStab(res,slC = slC, suC = suC),
+        ["UNVISITED"]
+    )
+
+    return root
 end
