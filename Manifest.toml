@@ -155,7 +155,7 @@ uuid = "e8aa6df9-e6ca-548a-97ff-1f85fc5b8b98"
 version = "4.64.0+0"
 
 [[GMP_jll]]
-deps = ["Libdl", "Pkg"]
+deps = ["Libdl", "Pkg", "JLLWrappers"]
 git-tree-sha1 = "4dd9301d3a027c05ec403e756ee7a60e3c367e5d"
 uuid = "781609d7-10c4-51f6-84f2-b8444358ff6d"
 version = "6.1.2+5"
