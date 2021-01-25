@@ -1,16 +1,6 @@
-# ==============================================================================
+# =========================================================================
 #    BASIC STRUCTURES
-# ==============================================================================
-
-"""
-    vtx
-
-My super awesome array wrapper!
-
-# Fields
-- `name::String`: name of the vertex
-- `type::String`: type identifier of the vertex
-"""
+# =========================================================================
 
 struct vtx
     #IDENTIFIERS
@@ -71,6 +61,12 @@ end
 struct bound
     idx::NamedTuple
     val::Int64
+end
+
+struct dval
+    λ::JuMP.Containers.DenseAxisArray
+    γ::JuMP.Containers.DenseAxisArray
+    δ::JuMP.Containers.DenseAxisArray
 end
 
 struct stabilizer
