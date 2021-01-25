@@ -1,8 +1,16 @@
-# ==============================================================================
+# =========================================================================
 #    COLUMN GENERATION MECHANISMS
-# ==============================================================================
+# =========================================================================
 
-function master(n::node;silent::Bool)
+function master(
+    n::node,
+    optimizer = get_default_optimizer();
+    silent::Bool)
+
+    mp = Model(optimizer)
+    if silent
+        set_silent(mp)
+    end
 
     return mp
 end
