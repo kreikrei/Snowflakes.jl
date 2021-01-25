@@ -9,12 +9,6 @@ git-tree-sha1 = "9e62e66db34540a0c919d72172cc2f642ac71260"
 uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 version = "0.5.0"
 
-[[BinaryProvider]]
-deps = ["Libdl", "Logging", "Pkg", "SHA", "Test"]
-git-tree-sha1 = "064e82000969b22b28d2f2a5c1a49da04e601156"
-uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
-version = "0.5.91"
-
 [[Bzip2_jll]]
 deps = ["Libdl", "Pkg"]
 git-tree-sha1 = "5ccb0770e3d1c185a52e6d36e3ffb830639ed3d2"
@@ -141,24 +135,6 @@ version = "0.10.12"
 [[Future]]
 deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
-
-[[GLPK]]
-deps = ["BinaryProvider", "GLPK_jll", "Libdl", "MathOptInterface", "SparseArrays"]
-git-tree-sha1 = "86573ecb852e303b209212046af44871f1c0e49c"
-uuid = "60bf3e95-4087-53dc-ae20-288a0d20c6a6"
-version = "0.13.0"
-
-[[GLPK_jll]]
-deps = ["GMP_jll", "Libdl", "Pkg"]
-git-tree-sha1 = "ccc855de74292e478d4278e3a6fdd8212f75e81e"
-uuid = "e8aa6df9-e6ca-548a-97ff-1f85fc5b8b98"
-version = "4.64.0+0"
-
-[[GMP_jll]]
-deps = ["Libdl", "Pkg"]
-git-tree-sha1 = "4dd9301d3a027c05ec403e756ee7a60e3c367e5d"
-uuid = "781609d7-10c4-51f6-84f2-b8444358ff6d"
-version = "6.1.2+5"
 
 [[Gurobi]]
 deps = ["Libdl", "LinearAlgebra", "MathOptInterface", "MathProgBase", "SparseArrays"]
@@ -356,12 +332,6 @@ version = "1.0.1"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
-
-[[SafeTestsets]]
-deps = ["Test"]
-git-tree-sha1 = "36ebc5622c82eb9324005cc75e7e2cc51181d181"
-uuid = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
-version = "0.0.1"
 
 [[Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
