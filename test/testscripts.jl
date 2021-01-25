@@ -1,7 +1,8 @@
 using Snowflakes
 using Test
+using GLPK
 
-@testset "Base.jl test" begin
+@testset "Base.jl" begin
     path = joinpath(@__DIR__,"testdata.xlsx")
     res = base(path)
 
@@ -19,4 +20,11 @@ using Test
     @test initStab(res;slC = 500.0, suC = -500.0).suLim == abs.(res.d)
 
     @test isa(root(res;slC = 500.0, suC = -500.0),Snowflakes.node)
+end
+
+@testset "Settings.jl" begin
+    set_default_optimizer!(GLPK.Optimizer)
+
+    @test get_default_optimizer() == GLPK.Optimizer
+    @test reset_default_optimizer() == nothing
 end
