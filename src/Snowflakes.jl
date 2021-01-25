@@ -7,6 +7,9 @@ using Query
 using Distances
 using Random
 using UUIDs
+using MathOptInterface
+using Combinatorics
+using GLPK
 
 include("Structures.jl")
 include("Base.jl")
