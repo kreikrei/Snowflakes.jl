@@ -3,13 +3,13 @@
 # ==============================================================================
 
 """
-    MyArray{T,N}
+    vtx
 
 My super awesome array wrapper!
 
 # Fields
-- `data::AbstractArray{T,N}`: stores the array being wrapped
-- `metadata::Dict`: stores metadata about the array
+- `name::String`: name of the vertex
+- `type::String`: type identifier of the vertex
 """
 
 struct vtx
