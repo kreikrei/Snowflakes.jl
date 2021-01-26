@@ -23,10 +23,18 @@ function buildMaster(n::node;silent::Bool)
 
     @objective(
         mp, Min,
-        #sum(
-        #    sum(
-        #        base().dist[i,j] * (base().K[k].vx * R[r].x[i,j,k,t] + base().K[k].vl * R[r].l[i,j,k,t]) for i in keys(base().V), j in keys(base().V)) + sum(base().K[k].fd * R[r].u[i,k,t] for i in base().K[k].cover) + sum(base().K[k].fp * R[r].z[i,k,t] for i in base().K[k].loadp) for r in keys(R), k in keys(base().K), t in base().T
-        #) +
+        sum(
+            sum(
+                base().dist[i,j] * (
+                    base().K[k].vx * R[r].x[i,j,k,t] +
+                    base().K[k].vl * R[r].l[i,j,k,t]
+                )
+                for i in keys(base().V), j in keys(base().V)
+            ) +
+            sum(base().K[k].fd * R[r].u[i,k,t] for i in base().K[k].cover) +
+            sum(base().K[k].fp * R[r].z[i,k,t] for i in base().K[k].loadp)
+            for r in keys(R), k in keys(base().K), t in base().T
+        ) +
         sum(
             base().V[i].h * I[i,t]
             for i in keys(base().V), t in base().T
