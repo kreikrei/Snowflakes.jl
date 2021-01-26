@@ -138,7 +138,7 @@ function buildSub(n::node,duals::dval;silent::Bool)
         ) -
         sum(
             sum(
-                z[s,k,t] * duals.γ[s,t]
+                z[s,k,t] * duals.γ[s,k,t]
                 for s in base().K[k].loadp
             )
             for k in keys(base().K), t in base().T
