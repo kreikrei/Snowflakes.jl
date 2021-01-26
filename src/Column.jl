@@ -145,7 +145,7 @@ function buildSub(n::node,duals::dval;silent::Bool)
         )
     )
 
-    for i in keys(base().V, k in keys(base().K), t in base().T
+    for i in keys(base().V), k in keys(base().K), t in base().T
         @constraints(
             sp, begin
                 q[i,k,t] == u[i,k,t] - v[i,k,t]
