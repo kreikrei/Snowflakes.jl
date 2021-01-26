@@ -19,7 +19,7 @@ function buildMaster(n::node;silent::Bool)
     @variable(mp, θ[r=keys(R),k=keys(base().K),t=base().T] >= 0) #θ definition
     @variable(mp, I[i=keys(base().V),t=vcat(first(base().T)-1,base().T)]) #I definition
     @variable(mp, 0 <= slack[i=keys(base().V),t=base().T] <= n.stab.slLim[i,t]) #slack
-    @variable(mp, 0 <= surp[i=keys(base().V),t=base().T]) <= n.stab.suLim[i,t]) #surplus
+    @variable(mp, 0 <= surp[i=keys(base().V),t=base().T] <= n.stab.suLim[i,t]) #surplus
 
     @objective(
         mp, Min,

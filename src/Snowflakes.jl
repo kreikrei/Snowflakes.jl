@@ -31,5 +31,6 @@ export get_default_optimizer
 export reset_default_optimizer
 
 export master
+export buildMaster
 
 end
