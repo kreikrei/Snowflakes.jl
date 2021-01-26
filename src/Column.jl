@@ -54,7 +54,7 @@ function buildMaster(n::node;silent::Bool)
         mp, λ[i=keys(base().V),t=base().T],
         I[i,t-1] + sum(
             R[r].q[i,k,t] * θ[r,k,t] for r in keys(R), k in keys(base().K)
-        ) == base().d[i,t] + I[i,t]
+        ) + slack[i,t] - surp[i,t] == base().d[i,t] + I[i,t]
     )
 
     @constraint(
