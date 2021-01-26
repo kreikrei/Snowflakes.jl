@@ -35,5 +35,5 @@ end
     test_root = root(;slC=500.0,suC=-500.0)
     test_mp = master(test_root;silent=false)
 
-    @test has_values(tes_mp)
+    @test has_values(test_mp)
 end
