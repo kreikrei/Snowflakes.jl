@@ -86,7 +86,7 @@ end
 function getDuals(mp::Model)
 
     return duals
-end()
+end
 
 function sub(n::node,duals::dval;silent::Bool)
 
