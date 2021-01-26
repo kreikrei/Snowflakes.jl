@@ -85,8 +85,11 @@ function buildMaster(n::node;silent::Bool)
 end
 
 function getDuals(mp::Model)
+    λ = dual.(mp.obj_dict[:λ])
+    γ = dual.(mp.obj_dict[:γ])
+    δ = dual.(mp.obj_dict[:δ])
 
-    return duals
+    return dval(λ,γ,δ)
 end
 
 function sub(n::node,duals::dval;silent::Bool)
