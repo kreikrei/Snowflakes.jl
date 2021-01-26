@@ -1,7 +1,6 @@
 using Snowflakes
 using Test
 using JuMP
-using MathOptInterface
 using GLPK
 
 path = joinpath(@__DIR__,"testdata.xlsx")
@@ -36,5 +35,5 @@ end
     test_root = root(;slC=500.0,suC=-500.0)
     test_mp = master(test_root;silent=false)
 
-    @test termination_status(tes_mp) == MOI.OPTIMAL
+    @test has_values(tes_mp)
 end
