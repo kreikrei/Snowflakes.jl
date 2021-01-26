@@ -45,7 +45,7 @@ function buildMaster(n::node;silent::Bool)
         ) -
         sum(
             n.stab.suCoeff * surp[i,t]
-            for i in keys(base().V, t in base().T)
+            for i in keys(base().V), t in base().T)
         )
     )
 
