@@ -100,7 +100,7 @@ function sub(n::node,duals::dval;silent::Bool)
 end
 
 function buildSub(n::node,duals::dval;silent::Bool)
-    sp = Model(get_default_optimizer)
+    sp = Model(get_default_optimizer())
     if silent
         set_silent(sp)
     end

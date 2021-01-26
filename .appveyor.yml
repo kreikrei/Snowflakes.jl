@@ -2,7 +2,6 @@
 environment:
   matrix:
     - julia_version: 1.4
-    - julia_version: 1.5
     - julia_version: nightly
 platform:
   - x64
@@ -10,8 +9,7 @@ cache:
   - '%USERPROFILE%\.julia\artifacts'
 matrix:
   allow_failures:
-    - julia_version: 1.4
-    - julia_version: 1.5
+    #- julia_version: 1.4
     - julia_version: nightly
 branches:
   only:
