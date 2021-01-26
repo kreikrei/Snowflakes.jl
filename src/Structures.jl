@@ -81,9 +81,6 @@ struct node
     parent::UUID
     self::UUID
 
-    #BUILD COMPONENT
-    base::dt
-
     #Dynamaic SET
     bounds::Vector{bound}
     columns::Vector{col}
