@@ -20,8 +20,8 @@ include("Base.jl")
 include("Column.jl")
 include("Settings.jl")
 
-export extract
-export base!
+export base
+export extract!
 export stats
 export initStab
 export root
