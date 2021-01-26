@@ -170,13 +170,14 @@ function buildSub(n::node,duals::dval;silent::Bool)
         v[s,k,t] <= base().K[k].Q * z[s,k,t]
     )
 
-    @constraints(
-        sp, [k=keys(base().K),t=base().T],
-        begin
-            sum(q[i,k,t] for i in keys(base().V)) == 0
-            sum(z[s,k,t] for s in base().K[k].loadp) <= 1
-        end
-    )
+    for k in keys(base().K),t in base().T
+        @constraints(
+            sp, begin
+                sum(q[i,k,t] for i in keys(base().V)) == 0
+                sum(z[s,k,t] for s in base().K[k].loadp) <= 1
+            end
+        )
+    end
 
     return sp
 end
