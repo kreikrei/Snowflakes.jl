@@ -45,16 +45,16 @@ end
 
 struct col
     #q related
-    q::JuMP.Containers.SparseAxisArray
-    u::JuMP.Containers.SparseAxisArray
-    v::JuMP.Containers.SparseAxisArray
-    l::JuMP.Containers.SparseAxisArray
+    q::JuMP.Containers.DenseAxisArray
+    u::JuMP.Containers.DenseAxisArray
+    v::JuMP.Containers.DenseAxisArray
+    l::JuMP.Containers.DenseAxisArray
 
     #0-1 related
-    p::JuMP.Containers.SparseAxisArray
-    y::JuMP.Containers.SparseAxisArray
-    z::JuMP.Containers.SparseAxisArray
-    x::JuMP.Containers.SparseAxisArray
+    p::JuMP.Containers.DenseAxisArray
+    y::JuMP.Containers.DenseAxisArray
+    z::JuMP.Containers.DenseAxisArray
+    x::JuMP.Containers.DenseAxisArray
 end
 
 struct bound
@@ -64,8 +64,7 @@ end
 
 struct dval
     λ::JuMP.Containers.DenseAxisArray
-    γ::JuMP.Containers.DenseAxisArray
-    δ::JuMP.Containers.SparseAxisArray
+    δ::JuMP.Containers.DenseAxisArray
 end
 
 struct stabilizer
