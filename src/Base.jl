@@ -3,7 +3,7 @@
 # =========================================================================
 
 const template_data = Ref{Any}(nothing)
-base() = template_data[] #buat manggil dt default
+d() = template_data[] #buat manggil dt default
 
 function extract!(path::String) #extract from excel
     xf = XLSX.readxlsx(path) #READ WORKSHEET
@@ -60,7 +60,7 @@ function extract!(path::String) #extract from excel
     return template_data[] = res
 end
 
-function stats(res = base())
+function stats(res = d())
     uniqueVtx = unique([res.V[i].type for i in keys(res.V)])
     uniqueVeh = unique([res.K[k].type for k in keys(res.K)])
 
@@ -101,7 +101,7 @@ function stats(res = base())
     return stats
 end
 
-function initStab(res = base();slC::Float64,suC::Float64)
+function initStab(res = d();slC::Float64,suC::Float64)
     slackCoeff = slC
     surpCoeff = suC
     slackLim = abs.(res.d)
@@ -110,7 +110,7 @@ function initStab(res = base();slC::Float64,suC::Float64)
     return stabilizer(slackCoeff,surpCoeff,slackLim,surpLim)
 end
 
-function root(res = base();slC::Float64,suC::Float64)
+function root(res = d();slC::Float64,suC::Float64)
     id = uuid1()
     root = node(
         id, id,
