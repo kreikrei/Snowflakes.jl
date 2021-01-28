@@ -16,25 +16,32 @@ function buildMaster(n::node;silent::Bool)
         set_silent(mp)
     end
 
-    @variable(mp, θ[r=keys(R), k=keys(base().K), t=base().T] >= 0) #θ definition
-    @variable(mp, I[i=keys(base().V), t=vcat(first(base().T)-1,base().T)]) #I definition
-    @variable(mp, 0 <= slack[i=keys(base().V), t=base().T] <= n.stab.slLim[i,t]) #slack
-    @variable(mp, 0 <= surp[i=keys(base().V), t=base().T] <= n.stab.suLim[i,t]) #surplus
+    @variable(mp,
+        θ[r=keys(R), k=keys(base().K), f=collect(1:base().K[k].freq), t=base().T] >= 0
+    ) #θ definition
+    @variable(mp,
+        I[i=keys(base().V), t=vcat(first(base().T)-1,base().T)]
+    ) #I definition
+    @variable(mp,
+        0 <= slack[i=keys(base().V), t=base().T] <= n.stab.slLim[i,t]
+    ) #slack
+    @variable(mp,
+        0 <= surp[i=keys(base().V), t=base().T] <= n.stab.suLim[i,t]
+    ) #surplus
 
     @objective(
         mp, Min,
         sum(
-            θ[r,k,t] * (
+            θ[r,k,f,t] * (
                 sum(
                     base().dist[i,j] * (
-                        base().K[k].vx * R[r].x[i,j,k,t] +
-                        base().K[k].vl * R[r].l[i,j,k,t]
-                    )
-                    for i in keys(base().V), j in keys(base().V)
+                        base().K[k].vx * R[r].x[i,j,k,f,t] +
+                        base().K[k].vl * R[r].l[i,j,k,f,t]
+                    ) for i in base().K[k].cover, j in base().K[k].cover
                 ) +
-                sum(base().K[k].fd * R[r].u[i,k,t] for i in base().K[k].cover) +
-                sum(base().K[k].fp * R[r].z[i,k,t] for i in base().K[k].loadp)
-            ) for r in keys(R), k in keys(base().K), t in base().T
+                sum(base().K[k].fd * R[r].u[i,k,f,t] for i in base().K[k].cover) +
+                sum(base().K[k].fp * R[r].z[i,k,f,t] for i in base().K[k].cover)
+            ) for r in keys(R), k in keys(base().K), f in collect(1:base().K[k].freq), t in base().T
         ) +
         sum(
             base().V[i].h * I[i,t]
@@ -53,22 +60,24 @@ function buildMaster(n::node;silent::Bool)
     @constraint(
         mp, λ[i=keys(base().V),t=base().T],
         I[i,t-1] + sum(
-            R[r].q[i,k,t] * θ[r,k,t] for r in keys(R), k in keys(base().K)
+            R[r].q[i,k,f,t] * θ[r,k,f,t]
+            for r in keys(R), k in keys(base().K), f in collect(1:base().K[k].freq)
         ) + slack[i,t] - surp[i,t] == base().d[i,t] + I[i,t]
     )
 
     @constraint(
         mp, γ[i=keys(base().V),k=keys(base().K),t=base().T],
         sum(
-            R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)
+            R[r].z[i,k,f,t] * θ[r,k,f,t]
+            for r in keys(R), f in collect(1:base().K[k].freq)
         ) <= base().K[k].freq
     )
 
     @constraint(
-        mp, δ[k=keys(base().K),t=base().T],
+        mp, δ[k=keys(base().K),f=collect(1:base().K[k].freq),t=base().T],
         sum(
-            θ[r,k,t] for r in keys(R)
-        ) <= base().K[k].freq
+            θ[r,k,f,t] for r in keys(R)
+        ) <= 1
     )
 
     @constraint(
@@ -105,86 +114,97 @@ function buildSub(n::node,duals::dval;silent::Bool)
         set_silent(sp)
     end
 
-    @variable(sp, q[i=keys(base().V), k=keys(base().K), t=base().T])
-    @variable(sp, u[i=keys(base().V), k=keys(base().K), t=base().T] >= 0)
-    @variable(sp, v[i=keys(base().V), k=keys(base().K), t=base().T] >= 0)
-    @variable(sp,
-        l[i=keys(base().V), j=keys(base().V), k=keys(base().K), t=base().T] >= 0
-    )
-    @variable(sp, p[i=keys(base().V), k=keys(base().K), t=base().T], Bin)
-    @variable(sp, y[i=keys(base().V), k=keys(base().K), t=base().T], Bin)
-    @variable(sp, z[i=keys(base().V), k=keys(base().K), t=base().T], Bin)
-    @variable(sp,
-        x[i=keys(base().V), j=keys(base().V), k=keys(base().K), t=base().T], Bin
-    )
+    @variable(sp, q[i=keys(base().V), k=keys(base().K), f=collect(1:base().K[k].freq), t=base().T])
+    @variable(sp, u[i=keys(base().V), k=keys(base().K), f=collect(1:base().K[k].freq), t=base().T] >= 0)
+    @variable(sp, v[i=keys(base().V), k=keys(base().K), f=collect(1:base().K[k].freq), t=base().T] >= 0)
+    @variable(sp, l[i=keys(base().V), j=keys(base().V), k=keys(base().K), f=collect(1:base().K[k].freq), t=base().T] >= 0)
+    @variable(sp, p[i=keys(base().V), k=keys(base().K), f=collect(1:base().K[k].freq), t=base().T], Bin)
+    @variable(sp, y[i=keys(base().V), k=keys(base().K), f=collect(1:base().K[k].freq), t=base().T], Bin)
+    @variable(sp, z[i=keys(base().V), k=keys(base().K), f=collect(1:base().K[k].freq), t=base().T], Bin)
+    @variable(sp, x[i=keys(base().V), j=keys(base().V), k=keys(base().K), f=collect(1:base().K[k].freq), t=base().T], Bin)
 
     @objective(
         sp, Min,
         sum(
             sum(
                 base().dist[i,j] * (
-                    base().K[k].vx * x[i,j,k,t] +
-                    base().K[k].vl * l[i,j,k,t]
+                    base().K[k].vx * x[i,j,k,f,t] +
+                    base().K[k].vl * l[i,j,k,f,t]
                 )
-                for i in keys(base().V), j in keys(base().V)
+                for i in base().K[k].cover, j in base().K[k].cover
             ) +
-            sum(base().K[k].fd * u[i,k,t] for i in base().K[k].cover) +
-            sum(base().K[k].fp * z[i,k,t] for i in base().K[k].loadp)
-            for k in keys(base().K), t in base().T
+            sum(base().K[k].fd * u[i,k,f,t] for i in base().K[k].cover) +
+            sum(base().K[k].fp * z[i,k,f,t] for i in base().K[k].cover)
+            for k in keys(base().K), f in collect(1:base().K[k].freq), t in base().T
         ) -
         sum(
-            q[i,k,t] * duals.λ[i,t]
-            for i in keys(base().V), k in keys(base().K), t in base().T
+            q[i,k,f,t] * duals.λ[i,t]
+            for k in keys(base().K), i in base().K[k].cover, f in collect(1:base().K[k].freq), t in base().T
         ) -
         sum(
-            sum(
-                z[s,k,t] * duals.γ[s,k,t]
-                for s in base().K[k].loadp
-            )
-            for k in keys(base().K), t in base().T
+            z[i,k,f,t] * duals.γ[i,k,t]
+            for k in keys(base().K), i in base().K[k].cover, f in collect(1:base().K[k].freq), t in base().T
         )
-    )
-
-    for i in keys(base().V), k in keys(base().K), t in base().T
-        @constraints(
-            sp, begin
-                q[i,k,t] == u[i,k,t] - v[i,k,t]
-                p[i,k,t] == y[i,k,t] + z[i,k,t]
-                sum(l[j,i,k,t] for j in keys(base().V)) -
-                    sum(l[i,j,k,t] for j in keys(base().V)) ==
-                    q[i,k,t]
-                sum(x[i,j,k,t] for j in keys(base().V)) +
-                    sum(x[i,j,k,t] for j in keys(base().V)) ==
-                    2 * p[i,k,t]
-            end
-        )
-    end
-
-    @constraint(
-        sp, [k=keys(base().K),i=base().K[k].cover,t=base().T],
-        u[i,k,t] <= base().K[k].Q * y[i,k,t]
     )
 
     @constraint(
-        sp, [k=keys(base().K),s=base().K[k].loadp,t=base().T],
-        v[s,k,t] <= base().K[k].Q * z[s,k,t]
+        sp, [k=keys(base().K), i=base().K[k].cover, f=collect(1:base().K[k].freq), t=base().T],
+        q[i,k,f,t] == u[i,k,f,t] - v[i,k,f,t]
     )
 
-    for k in keys(base().K),t in base().T
-        @constraints(
-            sp, begin
-                sum(q[i,k,t] for i in keys(base().V)) == 0
-                sum(z[s,k,t] for s in base().K[k].loadp) <= 1
-            end
-        )
-    end
+    @constraint(
+        sp, [k=keys(base().K), i=base().K[k].cover, f=collect(1:base().K[k].freq), t=base().T],
+        p[i,k,f,t] == y[i,k,f,t] + z[i,k,f,t]
+    )
+
+    @constraint(
+        sp, [k=keys(base().K), i=base().K[k].cover, f=collect(1:base().K[k].freq), t=base().T],
+        sum(l[j,i,k,f,t] for j in keys(base().V)) -
+            sum(l[i,j,k,f,t] for j in keys(base().V)) ==
+            q[i,k,f,t]
+    )
+
+    @constraint(
+        sp, [k=keys(base().K), i=base().K[k].cover, f=collect(1:base().K[k].freq), t=base().T],
+        sum(x[j,i,k,f,t] for j in keys(base().V)) +
+            sum(x[i,j,k,f,t] for j in keys(base().V)) ==
+            2 * p[i,k,f,t]
+    )
+
+    @constraint(
+        sp, [k=keys(base().K), i=base().K[k].cover, f=collect(1:base().K[k].freq), t=base().T],
+        u[i,k,f,t] <= base().K[k].Q * y[i,k,f,t]
+    )
+
+    @constraint(
+        sp, [k=keys(base().K), i=base().K[k].cover, f=collect(1:base().K[k].freq), t=base().T],
+        v[i,k,f,t] <= base().K[k].Q * z[i,k,f,t]
+    )
+
+    @constraint(
+        sp, [k=keys(base().K), f=collect(1:base().K[k].freq), t=base().T],
+        sum(q[i,k,f,t] for i in base().K[k].cover) == 0
+    )
+
+    @constraint(
+        sp, [k=keys(base().K), f=collect(1:base().K[k].freq), t=base().T],
+        sum(z[s,k,f,t] for s in base().K[k].cover) <= 1
+    )
 
     return sp
 end
 
 function getCols(sp::Model)
+    p = value.(sp.obj_dict[:p])
+    q = value.(sp.obj_dict[:q])
+    u = value.(sp.obj_dict[:u])
+    y = value.(sp.obj_dict[:y])
+    v = value.(sp.obj_dict[:v])
+    z = value.(sp.obj_dict[:z])
+    l = value.(sp.obj_dict[:l])
+    x = value.(sp.obj_dict[:x])
 
-    return cols
+    return col(q,u,v,l,p,y,z,x)
 end
 
 function updateStab(stab::stabilizer)

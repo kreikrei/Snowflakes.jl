@@ -36,7 +36,7 @@ function extract!(path::String) #extract from excel
     for k in eachrow(data[:vehicles]) #ITERATE OVER DATA
         K[k.id] = veh(
             k.name, k.type,
-            parse.(Int64,split(k.cover)), parse.(Int64,split(k.loadp)), k.freq, k.Q,
+            parse.(Int64,split(k.cover)), k.freq, k.Q,
             k.vx, k.vl, k.fp, k.fd
         )
     end

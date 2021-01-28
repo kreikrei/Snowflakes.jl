@@ -25,7 +25,6 @@ struct veh
 
     #CHAR
     cover::Vector{Int64}
-    loadp::Vector{Int64}
     freq::Int64
     Q::Int64
 
@@ -46,16 +45,16 @@ end
 
 struct col
     #q related
-    q::JuMP.Containers.DenseAxisArray
-    u::JuMP.Containers.DenseAxisArray
-    v::JuMP.Containers.DenseAxisArray
-    l::JuMP.Containers.DenseAxisArray
+    q::JuMP.Containers.SparseAxisArray
+    u::JuMP.Containers.SparseAxisArray
+    v::JuMP.Containers.SparseAxisArray
+    l::JuMP.Containers.SparseAxisArray
 
     #0-1 related
-    p::JuMP.Containers.DenseAxisArray
-    y::JuMP.Containers.DenseAxisArray
-    z::JuMP.Containers.DenseAxisArray
-    x::JuMP.Containers.DenseAxisArray
+    p::JuMP.Containers.SparseAxisArray
+    y::JuMP.Containers.SparseAxisArray
+    z::JuMP.Containers.SparseAxisArray
+    x::JuMP.Containers.SparseAxisArray
 end
 
 struct bound
@@ -66,7 +65,7 @@ end
 struct dval
     λ::JuMP.Containers.DenseAxisArray
     γ::JuMP.Containers.DenseAxisArray
-    δ::JuMP.Containers.DenseAxisArray
+    δ::JuMP.Containers.SparseAxisArray
 end
 
 struct stabilizer
