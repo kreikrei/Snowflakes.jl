@@ -182,10 +182,6 @@ function buildSub(n::node,duals::dval;silent::Bool)
     )
 
     @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-        z[i,k,t] <= b().K[k].freq #maximum manifest from each point
-    )
-
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
         sum(x[j,i,k,t] for j in b().K[k].cover) == p[i,k,t] #traverse in to i
     )
 
@@ -196,6 +192,11 @@ function buildSub(n::node,duals::dval;silent::Bool)
     @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
         sum(l[j,i,k,t] for j in b().K[k].cover) -
         sum(l[i,j,k,t] for j in b().K[k].cover) == q[i,k,t] #vehicle load balance
+    )
+
+    @constraint(sp, [k = keys(b().K), t = b().T],
+        sum(z[i,k,t] for i in b().K[k].cover)
+        <= length(b().K[k].cover) * b().K[k].freq #maximum manifest
     )
 
     @constraint(sp, [k = keys(b().K), t = b().T],
