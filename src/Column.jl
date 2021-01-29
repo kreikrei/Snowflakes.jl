@@ -63,8 +63,8 @@ function buildMaster(n::node;silent::Bool)
         slack[i,t] - surp[i,t] == b().d[i,t] + I[i,t] #inventory balance
     )
 
-    @constraint(mp, δ[k = keys(b().K), t = b().T],
-        sum(θ[r,k,t] for r in keys(R)) <= b().K[k].freq #convexity constraint
+    @constraint(mp, δ[i = keys(b().V), k = keys(b().K, t = b().T)],
+        sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)) <= b().K[k].freq
     )
 
     @constraint(mp, [i = keys(b().V), t = b().T],
@@ -98,89 +98,6 @@ end
 function sub(n::node,duals::dval;silent::Bool)
     sp = buildSub(n,duals;silent=silent)
     optimize!(sp)
-
-    return sp
-end
-
-function buildSubBreak(n::node,duals::dval;silent::Bool,k::Int64,t::Int64)
-    sp = Model(get_default_optimizer())
-    if silent
-        set_silent(sp)
-    end
-
-    @variable(sp, q[i = keys(b().V)])
-    @variable(sp, u[i = keys(b().V)] >= 0)
-    @variable(sp, v[i = keys(b().V)] >= 0)
-    @variable(sp, l[i = collect(keys(b().V)), j = collect(keys(b().V))] >= 0) #quantity
-
-    @variable(sp, p[i = keys(b().V)] >= 0, Int)
-    @variable(sp, y[i = keys(b().V)] >= 0, Int)
-    @variable(sp, z[i = keys(b().V)] >= 0, Int)
-    @variable(sp, x[i = collect(keys(b().V)), j = collect(keys(b().V))] >= 0, Int) #0-1
-
-    @objective(
-        sp, Min,
-        sum(
-            b().dist[i,j] * (
-                b().K[k].vx * x[i,j] +
-                b().K[k].vl * l[i,j]
-            )
-            for i in b().K[k].cover, j in b().K[k].cover
-        ) +
-        sum(
-            b().K[k].fd * u[i]
-            for i in b().K[k].cover
-        ) +
-        sum(
-            b().K[k].fp * z[i]
-            for i in b().K[k].cover
-        ) - #column cost
-        sum(
-            q[i] * duals.λ[i,t]
-            for i in b().K[k].cover
-        ) - #dual part 1
-        duals.δ[k,t] #dual part 2
-    )
-
-    @constraint(sp, [i = b().K[k].cover],
-        q[i] == u[i] - v[i] #q breakdown
-    )
-
-    @constraint(sp, [i = b().K[k].cover],
-        p[i] == y[i] + z[i] #p breakdown
-    )
-
-    @constraint(sp, [i = b().K[k].cover],
-        u[i] <= b().K[k].Q * y[i] # u - y correlation
-    )
-
-    @constraint(sp, [i = b().K[k].cover],
-        v[i] <= b().K[k].Q * z[i] # v - z correlation
-    )
-
-    @constraint(sp,
-        [i = b().K[k].cover, j = b().K[k].cover],
-        l[i,j] <= b().K[k].Q * x[i,j] # l - x correlation
-    )
-
-    @constraint(sp, [i = b().K[k].cover],
-        z[i] <= b().K[k].freq #maximum manifest from each point
-    )
-
-    @constraint(sp, [i = b().K[k].cover],
-        sum(x[j,i] for j in b().K[k].cover) == p[i] #traverse in to i
-    )
-
-    @constraint(sp, [i = b().K[k].cover],
-        sum(x[i,j] for j in b().K[k].cover) == p[i] #traverse out from i
-    )
-
-    @constraint(sp, [i = b().K[k].cover],
-        sum(l[j,i] for j in b().K[k].cover) -
-        sum(l[i,j] for j in b().K[k].cover) == q[i] #vehicle load balance
-    )
-
-    @constraint(sp, sum(q[i] for i in b().K[k].cover) == 0) #all pickup delivered
 
     return sp
 end
@@ -235,7 +152,10 @@ function buildSub(n::node,duals::dval;silent::Bool)
             for k in keys(b().K), t in b().T
         ) - #dual part 1
         sum(
-            duals.δ[k,t]
+            sum(
+                z[i,k,t] * duals.δ[i,k,t]
+                for i in b().K[k].cover
+            )
             for k in keys(b().K), t in b().T
         ) #dual part 2
     )
