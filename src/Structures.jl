@@ -57,14 +57,14 @@ struct col
     x::JuMP.Containers.DenseAxisArray
 end
 
-struct bound
-    idx::NamedTuple
-    val::Int64
-end
-
 struct dval
     λ::JuMP.Containers.DenseAxisArray
     δ::JuMP.Containers.DenseAxisArray
+end
+
+struct bound
+    idx::NamedTuple
+    val::Int64
 end
 
 struct stabilizer

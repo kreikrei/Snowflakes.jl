@@ -20,7 +20,7 @@ include("Base.jl")
 include("Column.jl")
 include("Settings.jl")
 
-export base
+export b
 export extract!
 export stats
 export initStab
@@ -32,5 +32,12 @@ export reset_default_optimizer
 
 export master
 export buildMaster
+export getDuals
+export sub
+export buildSub
+export getCols
+export updateStab!
+export checkStab
+export colGen
 
 end

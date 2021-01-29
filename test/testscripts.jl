@@ -2,36 +2,54 @@ using Snowflakes
 using Test
 using JuMP
 using GLPK
+using Gurobi
+using DataFrames
 
-path = joinpath(@__DIR__,"testdata2.xlsx")
+#SET SOLVER
+GUROBI_ENV = Gurobi.Env()
+set_default_optimizer!(optimizer_with_attributes(() -> Gurobi.Optimizer(GUROBI_ENV)))
+
+#INITIALIZE DATA
+path = joinpath(@__DIR__,"testdata1.xlsx")
 extract!(path)
 
-base()
-using Gurobi
-set_default_optimizer!(Gurobi.Optimizer)
-
+#GENERATE ROOT
 test_root = root(;slC=1000.0,suC=-1000.0)
 
+#colGen
+colGen(test_root;silent=true,track=true,maxCG=Inf)
+
+test_z = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(b().V),keys(b().K),b().T)
+test_R = Dict(1:length(test_root.columns) .=> test_root.columns)
 test_mp = master(test_root;silent=false)
-test_dual = Snowflakes.getDuals(test_mp)
+θ = test_mp.obj_dict[:θ]
+collection = DataFrame(i=Int64[],k=Int64[],t=Int64[],val=Float64[])
 
-test_sp = Snowflakes.sub(test_root,test_dual;silent=false)
+for i in keys(b().V), k in keys(b().K), t in b().T
+    iter = keys(filter(p -> last(p).z[i,k,t] > 0,test_R))
 
-test_x = value.(test_sp.obj_dict[:x])
-test_p = value.(test_sp.obj_dict[:p])
+    if !isempty(iter)
+        tot = value(sum(
+            θ[r,k,t]
+            for r in iter
+        ))
 
-test_x.data
-matrix_x(k,f,t) = JuMP.Containers.DenseAxisArray{Float64}(undef,base().K[k].cover,base().K[k].cover)
-matrix_x(1,1,1)
+        if tot > 0 && !isinteger(tot)
+            append!(collection,DataFrame(i=i,k=k,t=t,val=tot))
+        end
+    end
+end
 
+push!(test_root.bounds,Snowflakes.bound((i=15,k=72,t=3),1))
 
-getTours(test_x)
+master(test_root;silent=false)
 
+println(collection)
 
-test_col = Snowflakes.getCols(test_sp)
-push!(test_root.columns,test_col)
+test_z[25,43,1]
 
-println(value.(test_mp.obj_dict[:θ]))
+colGen(test_root;silent=true,maxCG=10.0,track=true)
+
 
 
 
@@ -41,14 +59,14 @@ println(value.(test_mp.obj_dict[:θ]))
     @test stats().number_of_vehicles == 84
 
     @test isequal( #all in cover_list is in keys(V)
-        sort(stats().cover_list),sort(collect(keys(base().V)))
+        sort(stats().cover_list),sort(collect(keys(b().V)))
     )
 
-    idx = rand(collect(keys(base().V))) #random point
-    @test base().dist[idx,idx] == 999999999
+    idx = rand(collect(keys(b().V))) #random point
+    @test b().dist[idx,idx] == 999999999
 
-    @test initStab(;slC = 500.0, suC = -500.0).slLim == abs.(base().d)
-    @test initStab(;slC = 500.0, suC = -500.0).suLim == abs.(base().d)
+    @test initStab(;slC = 500.0, suC = -500.0).slLim == abs.(b().d)
+    @test initStab(;slC = 500.0, suC = -500.0).suLim == abs.(b().d)
 
     @test isa(root(;slC = 500.0, suC = -500.0),Snowflakes.node)
 end
@@ -67,10 +85,3 @@ end
 
     @test has_values(test_mp)
 end
-
-using Gurobi
-set_default_optimizer!(Gurobi.Optimizer)
-test_root = root(;slC=500.0,suC=-500.0)
-test_mp = master(test_root;silent=false)
-test_duals = Snowflakes.getDuals(test_mp)
-test_sub = Snowflakes.sub(test_root,test_duals;silent=false)
