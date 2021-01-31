@@ -195,8 +195,7 @@ function buildSub(n::node,duals::dval;silent::Bool)
     )
 
     @constraint(sp, [k = keys(b().K), t = b().T],
-        sum(z[i,k,t] for i in b().K[k].cover)
-        <= length(b().K[k].cover) * b().K[k].freq #maximum manifest
+        sum(z[i,k,t] for i in b().K[k].cover) <= b().K[k].freq #maximum manifest
     )
 
     @constraint(sp, [k = keys(b().K), t = b().T],
@@ -300,16 +299,11 @@ function colGen(n::node;silent::Bool,maxCG::Float64,track::Bool)
         end
     end
 
-    if n.status != "NO_SOLUTION"
+    if n.status[end] != "NO_SOLUTION"
         println("NODE $(n.self) FINISHED.")
     else
         println("NODE $(n.self) FAILED.")
     end
 
     return n
-end
-
-function matrix(n::node)
-
-    return convert
 end
