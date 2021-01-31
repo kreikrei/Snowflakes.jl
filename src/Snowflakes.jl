@@ -14,6 +14,7 @@ using Distances
 using Random
 using Combinatorics
 using UUIDs
+using Statistics
 
 include("Structures.jl")
 include("Base.jl")

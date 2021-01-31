@@ -65,27 +65,21 @@ function stats(res = b())
     uniqueVeh = unique([res.K[k].type for k in keys(res.K)])
 
     vtxType = Dict{String,Vector{Int64}}()
+    vehType = Dict{String,Vector{Int64}}()
     for t in uniqueVtx
         vtxType[t] = sort(collect(keys(filter(p -> last(p).type == t , res.V))))
-    end
-    vehType = Dict{String,Vector{Int64}}()
-    for t in uniqueVeh
         vehType[t] = sort(collect(keys(filter(p -> last(p).type == t , res.K))))
     end
 
-    loadp = Vector{Int64}()
     cover = Vector{Int64}()
     for k in keys(res.K)
-        for l in res.K[k].loadp
-            push!(loadp,l)
-        end
         for c in res.K[k].cover
             push!(cover,c)
         end
-
-        unique!(loadp)
         unique!(cover)
     end
+
+    dems = [mean(res.d[:,t]) for t in res.T]
 
     stats = (
         number_of_vertices = length(res.V),
@@ -95,7 +89,7 @@ function stats(res = b())
         type_breakdown_vtx = vtxType,
         type_breakdown_veh = vehType,
         cover_list = cover,
-        loadp_list = loadp
+        average_demand = dems
     )
 
     return stats
