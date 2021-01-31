@@ -40,4 +40,5 @@ end
     test_sp = sub(test_root,test_duals;silent=false)
 
     @test objective_value(test_sp) < 0 #first iter sub < 0
+    @test updateStab!(test_root.stab,0.5).slLim == 0.5 .* b().d
 end
