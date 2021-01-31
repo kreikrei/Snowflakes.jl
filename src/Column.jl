@@ -63,8 +63,8 @@ function buildMaster(n::node;silent::Bool)
         slack[i,t] - surp[i,t] == b().d[i,t] + I[i,t] #inventory balance
     )
 
-    @constraint(mp, δ[k = keys(b().K), t = b().T],
-        sum(θ[r,k,t] for r in keys(R)) <= 1
+    @constraint(mp, δ[i = keys(b().V), k = keys(b().K), t = b().T],
+        sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)) <= b().K[k].freq
     )
 
     @constraint(mp, [i = keys(b().V), t = b().T],
@@ -152,7 +152,10 @@ function buildSub(n::node,duals::dval;silent::Bool)
             for k in keys(b().K), t in b().T
         ) - #dual part 1
         sum(
-            duals.δ[k,t]
+            sum(
+                z[i,k,t] * duals.δ[i,k,t]
+                for i in b().K[k].cover
+            )
             for k in keys(b().K), t in b().T
         ) #dual part 2
     )
