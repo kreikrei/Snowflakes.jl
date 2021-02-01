@@ -76,6 +76,7 @@ end
 struct bound
     var::Symbol
     idx::NamedTuple
+    sign::String
     val::Int64
 end
 
