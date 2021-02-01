@@ -78,12 +78,23 @@ function buildMaster(n::node;silent::Bool)
     # ================================
     #    BOUND GENERATOR
     # ================================
-    @constraint(mp, [g = n.bounds],
-        sum(
-            θ[r,g.idx.k,g.idx.t]
-            for r in keys(filter(p -> last(p).z[g.idx.i,g.idx.k,g.idx.t] > 0,R))
-        ) == g.val
-    )
+    for g in n.bounds
+        if g.var == :y
+            @constraint(mp,
+                sum(
+                    R[r].y[g.idx.i,g.idx.k,g.idx.t] * θ[r,g.idx.k,g.idx.t] #original y
+                    for r in keys(R)
+                ) == g.val
+            )
+        elseif g.var == :z
+            @constraint(mp,
+                sum(
+                    R[r].z[g.idx.i,g.idx.k,g.idx.t] * θ[r,g.idx.k,g.idx.t] #original z
+                    for r in keys(R)
+                ) == g.val
+            )
+        end
+    end
 
     return mp
 end
@@ -205,6 +216,17 @@ function buildSub(n::node,duals::dval;silent::Bool)
     # ================================
     #    BOUND GENERATOR
     # ================================
+    for g in n.bounds
+        if g.var == :y
+            @constraint(sp,
+                y[g.idx.i,g.idx.k,g.idx.t] == g.val #original y
+            )
+        elseif g.var == :z
+            @constraint(sp,
+                z[g.idx.i,g.idx.k,g.idx.t] == g.val
+            )
+        end
+    end
 
     return sp
 end

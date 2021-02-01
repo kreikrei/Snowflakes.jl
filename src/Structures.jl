@@ -74,6 +74,7 @@ struct dval
 end
 
 struct bound
+    var::Symbol
     idx::NamedTuple
     val::Int64
 end
