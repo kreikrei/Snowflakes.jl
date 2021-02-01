@@ -25,7 +25,6 @@ struct veh
 
     #CHAR
     cover::Vector{Int64}
-    loadp::Vector{Int64}
     freq::Int64
     Q::Int64
 
@@ -44,6 +43,17 @@ struct dt
     d::JuMP.Containers.DenseAxisArray
 end
 
+struct status
+    number_of_vertices::Int64
+    number_of_vehicles::Int64
+    unique_types_vtx::Array{String,1}
+    unique_types_veh::Array{String,1}
+    type_breakdown_vtx::Dict{String,Array{Int64,1}}
+    type_breakdown_veh::Dict{String,Array{Int64,1}}
+    cover_list::Array{Int64,1}
+    average_demand::Array{Float64,1}
+end
+
 struct col
     #q related
     q::JuMP.Containers.DenseAxisArray
@@ -58,15 +68,14 @@ struct col
     x::JuMP.Containers.DenseAxisArray
 end
 
+struct dval
+    λ::JuMP.Containers.DenseAxisArray
+    δ::JuMP.Containers.DenseAxisArray
+end
+
 struct bound
     idx::NamedTuple
     val::Int64
-end
-
-struct dval
-    λ::JuMP.Containers.DenseAxisArray
-    γ::JuMP.Containers.DenseAxisArray
-    δ::JuMP.Containers.DenseAxisArray
 end
 
 struct stabilizer

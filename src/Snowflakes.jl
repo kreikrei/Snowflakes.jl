@@ -14,17 +14,19 @@ using Distances
 using Random
 using Combinatorics
 using UUIDs
+using Statistics
 
 include("Structures.jl")
 include("Base.jl")
 include("Column.jl")
 include("Settings.jl")
 
-export base
+export b
 export extract!
 export stats
 export initStab
 export root
+export origin
 
 export set_default_optimizer!
 export get_default_optimizer
@@ -32,5 +34,12 @@ export reset_default_optimizer
 
 export master
 export buildMaster
+export getDuals
+export sub
+export buildSub
+export getCols
+export updateStab!
+export checkStab
+export colGen
 
 end
