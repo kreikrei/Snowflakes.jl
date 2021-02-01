@@ -82,7 +82,8 @@ function buildMaster(n::node;silent::Bool)
         if g.var == :x
             @constraint(mp,
                 sum(
-                    R[r].x[g.idx.i,g.idx.k,g.idx.t] * θ[r,g.idx.k,g.idx.t] #original y
+                    R[r].x[first(g.idx.i),last(g.idx.i),g.idx.k,g.idx.t] *
+                    θ[r,g.idx.k,g.idx.t] #original y
                     for r in keys(R)
                 ) == g.val
             )
@@ -226,7 +227,7 @@ function buildSub(n::node,duals::dval;silent::Bool)
     for g in n.bounds
         if g.var == :x
             @constraint(sp,
-                x[g.idx.i,g.idx.k,g.idx.t] == g.val #original y
+                x[first(g.idx.i),last(g.idx.i),g.idx.k,g.idx.t] == g.val #original y
             )
         elseif g.var == :y
             @constraint(sp,
