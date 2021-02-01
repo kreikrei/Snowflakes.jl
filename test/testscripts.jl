@@ -21,7 +21,7 @@ extract!(path)
     @test isa(root(;slC = 500.0, suC = -500.0),Snowflakes.node)
 end
 
-@testset "Optimizer" begin
+@testset "Optimizer Setting" begin
     set_default_optimizer!(GLPK.Optimizer)
 
     @test get_default_optimizer() == GLPK.Optimizer
@@ -43,4 +43,5 @@ end
 
     @test objective_value(test_sp) < 0 #first iter sub < 0
     @test updateStab!(test_root.stab,0.5).slLim == 0.5 .* b().d
+    @test typeof(origin(test_root)) == Snowflakes.col
 end
