@@ -26,6 +26,7 @@ export extract!
 export stats
 export initStab
 export root
+export origin
 
 export set_default_optimizer!
 export get_default_optimizer
