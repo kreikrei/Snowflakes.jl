@@ -78,12 +78,6 @@ function buildMaster(n::node;silent::Bool)
     # ================================
     #    BOUND GENERATOR
     # ================================
-    @constraint(mp, [g = n.bounds],
-        sum(
-            θ[r,g.idx.k,g.idx.t]
-            for r in keys(filter(p -> last(p).z[g.idx.i,g.idx.k,g.idx.t] > 0,R))
-        ) == g.val
-    )
 
     return mp
 end
