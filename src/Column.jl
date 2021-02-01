@@ -80,27 +80,55 @@ function buildMaster(n::node;silent::Bool)
     # ================================
     for g in n.bounds
         if g.var == :x
-            @constraint(mp,
-                sum(
-                    R[r].x[first(g.idx.i),last(g.idx.i),g.idx.k,g.idx.t] *
-                    θ[r,g.idx.k,g.idx.t] #original y
-                    for r in keys(R)
-                ) == g.val
-            )
+            if g.sign == ">="
+                @constraint(mp,
+                    sum(
+                        R[r].x[first(g.idx.i),last(g.idx.i),g.idx.k,g.idx.t] *
+                        θ[r,g.idx.k,g.idx.t] #original y
+                        for r in keys(R)
+                    ) >= g.val
+                )
+            else
+                @constraint(mp,
+                    sum(
+                        R[r].x[first(g.idx.i),last(g.idx.i),g.idx.k,g.idx.t] *
+                        θ[r,g.idx.k,g.idx.t] #original y
+                        for r in keys(R)
+                    ) <= g.val
+                )
+            end
         elseif g.var == :y
-            @constraint(mp,
-                sum(
-                    R[r].y[g.idx.i,g.idx.k,g.idx.t] * θ[r,g.idx.k,g.idx.t] #original z
-                    for r in keys(R)
-                ) == g.val
-            )
+            if g.sign == ">="
+                @constraint(mp,
+                    sum(
+                        R[r].y[g.idx.i,g.idx.k,g.idx.t] * θ[r,g.idx.k,g.idx.t] #original z
+                        for r in keys(R)
+                    ) >= g.val
+                )
+            else
+                @constraint(mp,
+                    sum(
+                        R[r].y[g.idx.i,g.idx.k,g.idx.t] * θ[r,g.idx.k,g.idx.t] #original z
+                        for r in keys(R)
+                    ) <= g.val
+                )
+            end
         elseif g.var == :z
-            @constraint(mp,
-                sum(
-                    R[r].z[g.idx.i,g.idx.k,g.idx.t] * θ[r,g.idx.k,g.idx.t] #original z
-                    for r in keys(R)
-                ) == g.val
-            )
+            if g.sign == ">="
+                @constraint(mp,
+                    sum(
+                        R[r].z[g.idx.i,g.idx.k,g.idx.t] * θ[r,g.idx.k,g.idx.t] #original z
+                        for r in keys(R)
+                    ) >= g.val
+                )
+            else
+                @constraint(mp,
+                    sum(
+                        R[r].z[g.idx.i,g.idx.k,g.idx.t] * θ[r,g.idx.k,g.idx.t] #original z
+                        for r in keys(R)
+                    ) <= g.val
+                )
+            end
         end
     end
 
@@ -226,17 +254,35 @@ function buildSub(n::node,duals::dval;silent::Bool)
     # ================================
     for g in n.bounds
         if g.var == :x
-            @constraint(sp,
-                x[first(g.idx.i),last(g.idx.i),g.idx.k,g.idx.t] == g.val #original y
-            )
+            if g.sign == ">="
+                @constraint(sp,
+                    x[first(g.idx.i),last(g.idx.i),g.idx.k,g.idx.t] >= g.val #original y
+                )
+            else
+                @constraint(sp,
+                    x[first(g.idx.i),last(g.idx.i),g.idx.k,g.idx.t] <= g.val #original y
+                )
+            end
         elseif g.var == :y
-            @constraint(sp,
-                y[g.idx.i,g.idx.k,g.idx.t] == g.val
-            )
+            if g.sign == ">="
+                @constraint(sp,
+                    y[g.idx.i,g.idx.k,g.idx.t] >= g.val
+                )
+            else
+                @constraint(sp,
+                    y[g.idx.i,g.idx.k,g.idx.t] <= g.val
+                )
+            end
         elseif g.var == :z
-            @constraint(sp,
-                z[g.idx.i,g.idx.k,g.idx.t] == g.val
-            )
+            if g.sign == ">="
+                @constraint(sp,
+                    z[g.idx.i,g.idx.k,g.idx.t] >= g.val
+                )
+            else
+                @constraint(sp,
+                    z[g.idx.i,g.idx.k,g.idx.t] <= g.val
+                )
+            end
         end
     end
 
