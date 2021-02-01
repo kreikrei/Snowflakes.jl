@@ -68,6 +68,8 @@ function stats(res = b())
     vehType = Dict{String,Vector{Int64}}()
     for t in uniqueVtx
         vtxType[t] = sort(collect(keys(filter(p -> last(p).type == t , res.V))))
+    end
+    for t in uniqueVeh
         vehType[t] = sort(collect(keys(filter(p -> last(p).type == t , res.K))))
     end
 

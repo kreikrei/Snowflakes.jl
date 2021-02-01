@@ -46,12 +46,12 @@ end
 struct status
     number_of_vertices::Int64
     number_of_vehicles::Int64
-    unique_types_vtx::Vector{String}
-    unique_types_veh::Vector{string}
-    type_breakdown_vtx::Dict{String,Vector{Int64}}
-    type_breakdown_veh::Dict{String,Vector{Int64}}
-    cover_list::Vector{Int64}
-    average_demand::Vector{Float64}
+    unique_types_vtx::Array{String,1}
+    unique_types_veh::Array{String,1}
+    type_breakdown_vtx::Dict{String,Array{Int64,1}}
+    type_breakdown_veh::Dict{String,Array{Int64,1}}
+    cover_list::Array{Int64,1}
+    average_demand::Array{Float64,1}
 end
 
 struct col
