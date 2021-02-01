@@ -81,7 +81,7 @@ function stats(res = b())
 
     dems = [mean(res.d[:,t]) for t in res.T]
 
-    stats = (
+    return status(
         number_of_vertices = length(res.V),
         number_of_vehicles = length(res.K),
         unique_types_vtx = uniqueVtx,
@@ -91,8 +91,6 @@ function stats(res = b())
         cover_list = cover,
         average_demand = dems
     )
-
-    return stats
 end
 
 function initStab(res = b();slC::Float64,suC::Float64)

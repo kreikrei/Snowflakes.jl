@@ -43,6 +43,17 @@ struct dt
     d::JuMP.Containers.DenseAxisArray
 end
 
+struct status
+    number_of_vertices::Int64
+    number_of_vehicles::Int64
+    unique_types_vtx::Vector{String}
+    unique_types_veh::Vector{string}
+    type_breakdown_vtx::Dict{String,Vector{Int64}}
+    type_breakdown_veh::Dict{String,Vector{Int64}}
+    cover_list::Vector{Int64}
+    average_demand::Vector{Float64}
+end
+
 struct col
     #q related
     q::JuMP.Containers.DenseAxisArray
