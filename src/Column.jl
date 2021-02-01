@@ -202,6 +202,10 @@ function buildSub(n::node,duals::dval;silent::Bool)
         sum(q[i,k,t] for i in b().K[k].cover) == 0 #all pickup delivered
     )
 
+    # ================================
+    #    BOUND GENERATOR
+    # ================================
+
     return sp
 end
 
