@@ -82,14 +82,14 @@ function stats(res = b())
     dems = [mean(res.d[:,t]) for t in res.T]
 
     return status(
-        number_of_vertices = length(res.V),
-        number_of_vehicles = length(res.K),
-        unique_types_vtx = uniqueVtx,
-        unique_types_veh = uniqueVeh,
-        type_breakdown_vtx = vtxType,
-        type_breakdown_veh = vehType,
-        cover_list = cover,
-        average_demand = dems
+        length(res.V),
+        length(res.K),
+        uniqueVtx,
+        uniqueVeh,
+        vtxType,
+        vehType,
+        cover,
+        dems
     )
 end
 
