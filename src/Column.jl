@@ -60,11 +60,11 @@ function buildMaster(n::node;silent::Bool)
 
     @constraint(mp, λ[i = keys(b().V), t = b().T],
         I[i,t-1] + sum(R[r].q[i,k,t] * θ[r,k,t] for r in keys(R), k in keys(b().K)) +
-        slack[i,t] - surp[i,t] == b().d[i,t] + I[i,t] #inventory balance
+        slack[i,t] - surp[i,t] == b().d[i,t] + I[i,t] #inventory balance constraint
     )
 
-    @constraint(mp, δ[i = keys(b().V), k = keys(b().K), t = b().T],
-        sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)) <= b().K[k].freq #maximum manifest
+    @constraint(mp, δ[k = keys(b().K), t = b().T],
+        sum(θ[r,k,t] for r in keys(R)) <= 1 #convexity constraint
     )
 
     @constraint(mp, [i = keys(b().V), t = b().T],
@@ -78,27 +78,6 @@ function buildMaster(n::node;silent::Bool)
     # ================================
     #    BOUND GENERATOR
     # ================================
-    @constraint(mp, μ[g = n.uBounds],
-        sum(
-            θ[r,g.idx.k,g.idx.t]
-            for r in keys(
-                filter(
-                    m -> last(m).p[g.idx.i,g.idx.k,g.idx.t] >= g.int, R
-                )
-            )
-        ) >= g.val
-    )
-
-    @constraint(mp, ν[g = n.lBounds],
-        sum(
-            θ[r,g.idx.k,g.idx.t]
-            for r in keys(
-                filter(
-                    m -> last(m).p[g.idx.i,g.idx.k,g.idx.t] >= g.int, R
-                )
-            )
-        ) <= g.val
-    )
 
     return mp
 end
@@ -106,10 +85,8 @@ end
 function getDuals(mp::Model)
     λ = dual.(mp.obj_dict[:λ])
     δ = dual.(mp.obj_dict[:δ])
-    μ = dual.(mp.obj_dict[:μ])
-    ν = dual.(mp.obj_dict[:ν])
 
-    return dval(λ,δ,μ,ν)
+    return dval(λ,δ)
 end
 
 function sub(n::node,duals::dval;silent::Bool)
@@ -135,13 +112,13 @@ function buildSub(n::node,duals::dval;silent::Bool)
 
     @variable(sp, p[i = keys(b().V), k = keys(b().K), t = b().T] >= 0, Int)
     @variable(sp, y[i = keys(b().V), k = keys(b().K), t = b().T] >= 0, Int)
-    @variable(sp, z[i = keys(b().V), k = keys(b().K), t = b().T] >= 0, Int)
+    @variable(sp,
+        0 <= z[i = keys(b().V), k = keys(b().K), t = b().T] <= b().K[k].freq, Int
+    )
     @variable(sp,
         x[i = collect(keys(b().V)), j = collect(keys(b().V)),
         k = collect(keys(b().K)), t = b().T] >= 0, Int
     ) #0-1 variables
-
-    @variable(sp, e[g = vcat(n.uBounds,n.lBounds)], Bin) #bounding
 
     @objective(
         sp, Min,
@@ -171,50 +148,40 @@ function buildSub(n::node,duals::dval;silent::Bool)
             for k in keys(b().K), t in b().T
         ) - #dual for inventory level
         sum(
-            sum(
-                z[i,k,t] * duals.δ[i,k,t]
-                for i in b().K[k].cover
-            )
+            duals.δ[k,t]
             for k in keys(b().K), t in b().T
         ) #dual for start point
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, qbreak[k = keys(b().K), i = b().K[k].cover, t = b().T],
         q[i,k,t] == u[i,k,t] - v[i,k,t] #q breakdown
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, pbreak[k = keys(b().K), i = b().K[k].cover, t = b().T],
         p[i,k,t] == y[i,k,t] + z[i,k,t] #p breakdown
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, u_y[k = keys(b().K), i = b().K[k].cover, t = b().T],
         u[i,k,t] <= b().K[k].Q * y[i,k,t] # u - y correlation
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, v_z[k = keys(b().K), i = b().K[k].cover, t = b().T],
         v[i,k,t] <= b().K[k].Q * z[i,k,t] # v - z correlation
     )
 
-    @constraint(sp,
-        [k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
-        l[i,j,k,t] <= b().K[k].Q * x[i,j,k,t] # l - x correlation
+    @constraint(sp, xtrav[k = keys(b().K), i = b().K[k].cover, t = b().T],
+        sum(x[j,i,k,t] for j in b().K[k].cover) +
+        sum(x[i,j,k,t] for j in b().K[k].cover) == 2 * p[i,k,t] #traverseal balance
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-        sum(x[j,i,k,t] for j in b().K[k].cover) == p[i,k,t] #traverse in to i
-    )
-
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-        sum(x[i,j,k,t] for j in b().K[k].cover) == p[i,k,t] #traverse out from i
-    )
-
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, ltrav[k = keys(b().K), i = b().K[k].cover, t = b().T],
         sum(l[j,i,k,t] for j in b().K[k].cover) -
-        sum(l[i,j,k,t] for j in b().K[k].cover) == q[i,k,t] #vehicle load balance
+        sum(l[i,j,k,t] for j in b().K[k].cover) == q[i,k,t] #load balance
     )
 
-    @constraint(sp, [k = keys(b().K), t = b().T],
-        sum(z[i,k,t] for i in b().K[k].cover) <= b().K[k].freq #maximum manifest
+    @constraint(sp,
+        x_l[k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
+        l[i,j,k,t] <= b().K[k].Q * x[i,j,k,t] # l - x correlation
     )
 
     @constraint(sp, [k = keys(b().K), t = b().T],
