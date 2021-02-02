@@ -20,6 +20,7 @@ include("Structures.jl")
 include("Base.jl")
 include("Column.jl")
 include("Settings.jl")
+include("Branching.jl")
 
 export b
 export extract!
