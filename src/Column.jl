@@ -65,7 +65,7 @@ function buildMaster(n::node;silent::Bool)
 
     @constraint(mp, δ[i = keys(b().V), k = keys(b().K), t = b().T],
         sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)) <= b().K[k].freq #maximum manifest
-    ) 
+    )
 
     @constraint(mp, [i = keys(b().V), t = b().T],
         b().V[i].MIN <= I[i,t] <= b().V[i].MAX #inventory capacity interval
