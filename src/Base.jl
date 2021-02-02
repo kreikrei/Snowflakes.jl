@@ -108,7 +108,7 @@ function root(res = b();slC::Float64,suC::Float64)
     id = uuid1()
     root = node(
         id, id,
-        Vector{bound}(),Vector{col}(),
+        Vector{bound}(),Vector{bound}(),Vector{col}(),
         initStab(res,slC = slC, suC = suC),
         ["UNVISITED"]
     )

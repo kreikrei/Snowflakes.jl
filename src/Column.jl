@@ -64,8 +64,8 @@ function buildMaster(n::node;silent::Bool)
     )
 
     @constraint(mp, δ[i = keys(b().V), k = keys(b().K), t = b().T],
-        sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)) <= b().K[k].freq
-    )
+        sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)) <= b().K[k].freq #maximum manifest
+    ) 
 
     @constraint(mp, [i = keys(b().V), t = b().T],
         b().V[i].MIN <= I[i,t] <= b().V[i].MAX #inventory capacity interval
@@ -78,6 +78,27 @@ function buildMaster(n::node;silent::Bool)
     # ================================
     #    BOUND GENERATOR
     # ================================
+    @constraint(mp, μ[g = n.uBounds],
+        sum(
+            θ[r,g.idx.k,g.idx.t]
+            for r in keys(
+                filter(
+                    p -> last(p).x[g.idx.i,g.idx.j,g.idx.k,g.idx.t] > g.int, R
+                )
+            )
+        ) >= g.val
+    )
+
+    @constraint(mp, ν[g = n.lBounds],
+        sum(
+            θ[r,g.idx.k,g.idx.t]
+            for r in keys(
+                filter(
+                    p -> last(p).x[g.idx.i,g.idx.j,g.idx.k,g.idx.t] > g.int, R
+                )
+            )
+        ) <= g.val
+    )
 
     return mp
 end
@@ -85,8 +106,10 @@ end
 function getDuals(mp::Model)
     λ = dual.(mp.obj_dict[:λ])
     δ = dual.(mp.obj_dict[:δ])
+    μ = dual.(mp.obj_dict[:μ])
+    ν = dual.(mp.obj_dict[:ν])
 
-    return dval(λ,δ)
+    return dval(λ,δ,μ,ν)
 end
 
 function sub(n::node,duals::dval;silent::Bool)
@@ -118,6 +141,8 @@ function buildSub(n::node,duals::dval;silent::Bool)
         k = collect(keys(b().K)), t = b().T] >= 0, Int
     ) #0-1 variables
 
+    @variable(sp, e[g = vcat(n.uBounds,n.lBounds)], Bin) #bounding
+
     @objective(
         sp, Min,
         sum(
@@ -144,14 +169,14 @@ function buildSub(n::node,duals::dval;silent::Bool)
                 for i in b().K[k].cover
             )
             for k in keys(b().K), t in b().T
-        ) - #dual part 1
+        ) - #dual for inventory level
         sum(
             sum(
                 z[i,k,t] * duals.δ[i,k,t]
                 for i in b().K[k].cover
             )
             for k in keys(b().K), t in b().T
-        ) #dual part 2
+        ) #dual for start point
     )
 
     @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
