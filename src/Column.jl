@@ -63,8 +63,8 @@ function buildMaster(n::node;silent::Bool)
         slack[i,t] - surp[i,t] == b().d[i,t] + I[i,t] #inventory balance constraint
     )
 
-    @constraint(mp, δ[k = keys(b().K), t = b().T],
-        sum(θ[r,k,t] for r in keys(R)) <= 1 #convexity constraint
+    @constraint(mp, δ[i = keys(b().V), k = keys(b().K), t = b().T],
+        sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)) <= b().K[k].freq #max start
     )
 
     @constraint(mp, [i = keys(b().V), t = b().T],
@@ -78,6 +78,25 @@ function buildMaster(n::node;silent::Bool)
     # ================================
     #    BOUND GENERATOR
     # ================================
+    @constraint(mp, μ[id = n.uB.id],
+        sum(θ[r,n.uB.k[id],n.uB.t[id]]
+            for r in keys(
+                    filter(
+                        m -> last(m).p[n.uB.i[id],n.uB.k[id],n.uB.t[id]] >= n.uB.e[id], R
+                    )
+                )
+        ) >= n.uB.val[id]
+    )
+
+    @constraint(mp, ν[id = n.lB.id],
+        sum(θ[r,n.lB.k[id],n.lB.t[id]]
+            for r in keys(
+                    filter(
+                        m -> last(m).p[n.lB.i[id],n.lB.k[id],n.lB.t[id]] >= n.lB.e[id], R
+                    )
+                )
+        ) <= n.lB.val[id]
+    )
 
     return mp
 end
@@ -85,8 +104,10 @@ end
 function getDuals(mp::Model)
     λ = dual.(mp.obj_dict[:λ])
     δ = dual.(mp.obj_dict[:δ])
+    μ = dual.(mp.obj_dict[:μ])
+    ν = dual.(mp.obj_dict[:ν])
 
-    return dval(λ,δ)
+    return dval(λ,δ,μ,ν)
 end
 
 function sub(n::node,duals::dval;silent::Bool)
@@ -120,6 +141,8 @@ function buildSub(n::node,duals::dval;silent::Bool)
         k = collect(keys(b().K)), t = b().T] >= 0, Int
     ) #0-1 variables
 
+    @variable(sp, o[id = vcat(n.uB.id,n.lB.id)], Bin) #bounding variables
+
     @objective(
         sp, Min,
         sum(
@@ -146,11 +169,22 @@ function buildSub(n::node,duals::dval;silent::Bool)
                 for i in b().K[k].cover
             )
             for k in keys(b().K), t in b().T
-        ) - #dual for inventory level
+        ) - #dual for inventory level (λ)
         sum(
-            duals.δ[k,t]
+            sum(
+                z[i,k,t] * duals.δ[i,k,t]
+                for i in b().K[k].cover
+            )
             for k in keys(b().K), t in b().T
-        ) #dual for start point
+        ) - #dual for start point (δ)
+        sum(
+            duals.μ[id] * o[id]
+            for id in n.uB.id
+        ) - #dual for upperBound
+        sum(
+            duals.ν[id] * o[id]
+            for id in n.lB.id
+        ) #dual for lowerBound
     )
 
     @constraint(sp, qbreak[k = keys(b().K), i = b().K[k].cover, t = b().T],
