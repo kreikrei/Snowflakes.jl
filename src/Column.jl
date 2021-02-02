@@ -83,7 +83,7 @@ function buildMaster(n::node;silent::Bool)
             θ[r,g.idx.k,g.idx.t]
             for r in keys(
                 filter(
-                    m -> last(m).p[g.idx.i,g.idx.k,g.idx.t] > g.int, R
+                    m -> last(m).p[g.idx.i,g.idx.k,g.idx.t] >= g.int, R
                 )
             )
         ) >= g.val
@@ -94,7 +94,7 @@ function buildMaster(n::node;silent::Bool)
             θ[r,g.idx.k,g.idx.t]
             for r in keys(
                 filter(
-                    m -> last(m).p[g.idx.i,g.idx.k,g.idx.t] > g.int, R
+                    m -> last(m).p[g.idx.i,g.idx.k,g.idx.t] >= g.int, R
                 )
             )
         ) <= g.val
