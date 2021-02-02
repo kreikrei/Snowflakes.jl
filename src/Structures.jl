@@ -77,6 +77,7 @@ end
 
 struct bound
     idx::NamedTuple
+    e::Int64
     val::Int64
 end
 
