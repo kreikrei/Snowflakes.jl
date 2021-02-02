@@ -11,7 +11,7 @@ end
 
 function buildMaster(n::node;silent::Bool)
     mp = Model(get_default_optimizer())
-    if silent
+    if silent || isnothing(silent)
         set_silent(mp)
     end
 
@@ -121,7 +121,7 @@ end
 
 function buildSub(n::node,duals::dval;silent::Bool)
     sp = Model(get_default_optimizer())
-    if silent
+    if silent || isnothing(silent)
         set_silent(sp)
     end
 
