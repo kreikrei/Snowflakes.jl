@@ -141,7 +141,8 @@ function buildSub(n::node,duals::dval;silent::Bool)
         k = collect(keys(b().K)), t = b().T] >= 0, Int
     ) #0-1 variables
 
-    @variable(sp, o[id = vcat(n.uB.id,n.lB.id)], Bin) #bounding variables
+    @variable(sp, o[id = n.uB.id], Bin) #upperbound
+    @variable(sp, a[id = n.lB.id], Bin) #lowerbound
 
     @objective(
         sp, Min,
@@ -182,7 +183,7 @@ function buildSub(n::node,duals::dval;silent::Bool)
             for id in n.uB.id
         ) - #dual for upperBound
         sum(
-            duals.ν[id] * o[id]
+            duals.ν[id] * a[id]
             for id in n.lB.id
         ) #dual for lowerBound
     )
@@ -228,6 +229,13 @@ function buildSub(n::node,duals::dval;silent::Bool)
     # ================================
     #    BOUND GENERATOR
     # ================================
+    @constraint(sp, [id = n.uB.id],
+        p[n.uB.i[id], n.uB.k[id], n.uB.t[id]] >= n.uB.e[id] * o[id]
+    )
+
+    @constraint(sp, [id = n.lB.id],
+        p[n.lB.i[id], n.lB.k[id], n.lB.t[id]] >= n.lB.e[id] * a[id]
+    )
 
     return sp
 end
