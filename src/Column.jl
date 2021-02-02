@@ -169,9 +169,12 @@ function buildSub(n::node,duals::dval;silent::Bool)
         v[i,k,t] <= b().K[k].Q * z[i,k,t] # v - z correlation
     )
 
-    @constraint(sp, xtrav[k = keys(b().K), i = b().K[k].cover, t = b().T],
-        sum(x[j,i,k,t] for j in b().K[k].cover) +
-        sum(x[i,j,k,t] for j in b().K[k].cover) == 2 * p[i,k,t] #traverseal balance
+    @constraint(sp, xtrav1[k = keys(b().K), i = b().K[k].cover, t = b().T],
+        sum(x[j,i,k,t] for j in b().K[k].cover) == p[i,k,t] #traversal balance (1)
+    )
+
+    @constraint(sp, xtrav2[k = keys(b().K), i = b().K[k].cover, t = b().T],
+        sum(x[i,j,k,t] for j in b().K[k].cover) == p[i,k,t] #traversal balance (1)
     )
 
     @constraint(sp, ltrav[k = keys(b().K), i = b().K[k].cover, t = b().T],
