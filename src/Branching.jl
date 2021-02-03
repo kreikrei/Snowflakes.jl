@@ -32,7 +32,7 @@ end
 
 function exploreFrac(n::node)
     R = Dict(1:length(n.columns) .=> n.columns)
-    mp = master(n;silent=true)
+    mp = master(n)
     θ = value.(mp.obj_dict[:θ])
     collection = DataFrame(
         var=Symbol[],

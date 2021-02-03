@@ -17,5 +17,5 @@ sl_C() = slack_coeff[]
 set_surp_coeff!(O) = surp_coeff[] = O
 su_C() = surp_coeff[]
 
-set_silent!(O) = verbosity[] = O
+set_silence!(O) = verbosity[] = O
 silent() = verbosity[]

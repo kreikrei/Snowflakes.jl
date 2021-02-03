@@ -131,7 +131,7 @@ function origin(n::node)
     )
 
     R = Dict(1:length(n.columns) .=> n.columns)
-    mp = master(n;silent=true)
+    mp = master(n)
     θ = mp.obj_dict[:θ]
 
     for i in keys(b().V), k in keys(b().K), t in b().T

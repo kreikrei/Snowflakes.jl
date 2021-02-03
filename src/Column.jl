@@ -2,16 +2,16 @@
 #    COLUMN GENERATION MECHANISMS
 # =========================================================================
 
-function master(n::node;silent::Bool)
-    mp = buildMaster(n;silent = silent)
+function master(n::node)
+    mp = buildMaster(n)
     optimize!(mp)
 
     return mp
 end
 
-function buildMaster(n::node;silent::Bool)
+function buildMaster(n::node)
     mp = Model(get_default_optimizer())
-    if silent || isnothing(silent)
+    if silent()
         set_silent(mp)
     end
 
@@ -89,16 +89,16 @@ function getDuals(mp::Model)
     return dval(λ,δ)
 end
 
-function sub(n::node,duals::dval;silent::Bool)
-    sp = buildSub(n,duals;silent=silent)
+function sub(n::node,duals::dval)
+    sp = buildSub(n,duals)
     optimize!(sp)
 
     return sp
 end
 
-function buildSub(n::node,duals::dval;silent::Bool)
+function buildSub(n::node,duals::dval)
     sp = Model(get_default_optimizer())
-    if silent || isnothing(silent)
+    if silent()
         set_silent(sp)
     end
 
@@ -238,21 +238,21 @@ function checkStab(mp::Model)
     return s
 end
 
-function colGen(n::node;silent::Bool,maxCG::Float64,track::Bool)
+function colGen(n::node;maxCG::Float64,track::Bool)
     terminate = false
     iter = 0
     mem = 0
 
     while !terminate
         if iter < maxCG
-            mp = master(n;silent=silent)
+            mp = master(n)
             if has_values(mp) && has_duals(mp)
                 if track #print master problem obj
                     println("obj: $(objective_value(mp))")
                 end
 
                 duals = getDuals(mp)
-                sp = sub(n,duals;silent=silent)
+                sp = sub(n,duals)
                 if track #print subproblem price
                     println("price: $(objective_value(sp))")
                 end

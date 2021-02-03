@@ -29,6 +29,8 @@ export set_slack_coeff!
 export sl_C
 export set_surp_coeff!
 export su_C
+export set_silent!
+export silent
 
 export b
 export extract!
