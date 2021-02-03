@@ -64,7 +64,7 @@ function buildMaster(n::node;silent::Bool)
     )
 
     @constraint(mp, δ[i = keys(b().V), k = keys(b().K), t = b().T],
-        sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)) <= b().K[k].freq
+        sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)) <= b().K[k].freq #maximum start
     )
 
     @constraint(mp, [i = keys(b().V), t = b().T],
@@ -78,6 +78,51 @@ function buildMaster(n::node;silent::Bool)
     # ================================
     #    BOUND GENERATOR
     # ================================
+    B = Dict(1:length(n.bounds) .=> n.bounds)
+
+    y_uB = keys(filter(m -> last(m).type == "upper" && last(m).var == :y,B))
+    @constraint(mp, μ[id = y_uB], #y upperBound
+        sum(θ[r,B[id].idx.k,B[id].idx.t]
+            for r in keys(
+                    filter(
+                        m -> last(m).y[B[id].idx.i,B[id].idx.k,B[id].idx.t] >= B[id].e, R
+                    )
+                )
+        ) >= B[id].val
+    )
+
+    y_lB = keys(filter(m -> last(m).type == "lower" && last(m).var == :y,B))
+    @constraint(mp, ν[id = y_lB], #y lowerBound
+        sum(θ[r,B[id].idx.k,B[id].idx.t]
+            for r in keys(
+                    filter(
+                        m -> last(m).y[B[id].idx.i,B[id].idx.k,B[id].idx.t] >= B[id].e, R
+                    )
+                )
+        ) <= B[id].val
+    )
+
+    z_uB = keys(filter(m -> last(m).type == "upper" && last(m).var == :z,B))
+    @constraint(mp, η[id = z_uB], #z upperBound
+        sum(θ[r,B[id].idx.k,B[id].idx.t]
+            for r in keys(
+                    filter( #MAKE SURE VARIABLE IS Z
+                        m -> last(m).z[B[id].idx.i,B[id].idx.k,B[id].idx.t] >= B[id].e, R
+                    )
+                )
+        ) >= B[id].val
+    )
+
+    z_lB = keys(filter(m -> last(m).type == "lower" && last(m).var == :z,B))
+    @constraint(mp, β[id = z_lB], #z lowerBound
+        sum(θ[r,B[id].idx.k,B[id].idx.t]
+            for r in keys(
+                    filter( #MAKE SURE VARIABLE IS Z
+                        m -> last(m).z[B[id].idx.i,B[id].idx.k,B[id].idx.t] >= B[id].e, R
+                    )
+                )
+        ) <= B[id].val
+    )
 
     return mp
 end
@@ -85,8 +130,12 @@ end
 function getDuals(mp::Model)
     λ = dual.(mp.obj_dict[:λ])
     δ = dual.(mp.obj_dict[:δ])
+    μ = dual.(mp.obj_dict[:μ])
+    ν = dual.(mp.obj_dict[:ν])
+    η = dual.(mp.obj_dict[:η])
+    β = dual.(mp.obj_dict[:β])
 
-    return dval(λ,δ)
+    return dval(λ,δ,μ,ν,η,β)
 end
 
 function sub(n::node,duals::dval;silent::Bool)
@@ -112,11 +161,16 @@ function buildSub(n::node,duals::dval;silent::Bool)
 
     @variable(sp, p[i = keys(b().V), k = keys(b().K), t = b().T] >= 0, Int)
     @variable(sp, y[i = keys(b().V), k = keys(b().K), t = b().T] >= 0, Int)
-    @variable(sp, z[i = keys(b().V), k = keys(b().K), t = b().T] >= 0, Int)
+    @variable(sp,
+        0 <= z[i = keys(b().V), k = keys(b().K), t = b().T] <= b().K[k].freq, Int
+    )
     @variable(sp,
         x[i = collect(keys(b().V)), j = collect(keys(b().V)),
         k = collect(keys(b().K)), t = b().T] >= 0, Int
     ) #0-1 variables
+
+    B = Dict(1:length(n.bounds) .=> n.bounds)
+    @variable(sp, o[keys(B)], Bin)
 
     @objective(
         sp, Min,
@@ -144,52 +198,64 @@ function buildSub(n::node,duals::dval;silent::Bool)
                 for i in b().K[k].cover
             )
             for k in keys(b().K), t in b().T
-        ) - #dual part 1
+        ) - #dual for inventory level (λ)
         sum(
             sum(
                 z[i,k,t] * duals.δ[i,k,t]
                 for i in b().K[k].cover
             )
             for k in keys(b().K), t in b().T
-        ) #dual part 2
+        ) - #dual for start point (δ)
+        sum(
+            duals.μ[id] * o[id]
+            for id in keys(filter(m -> last(m).type == "upper" && last(m).var == :y,B))
+        ) - #dual for y upperBound
+        sum(
+            duals.ν[id] * o[id]
+            for id in keys(filter(m -> last(m).type == "lower" && last(m).var == :y,B))
+        ) - #dual for y lowerBound
+        sum(
+            duals.η[id] * o[id]
+            for id in keys(filter(m -> last(m).type == "upper" && last(m).var == :z,B))
+        ) - #dual for z upperBound
+        sum(
+            duals.β[id] * o[id]
+            for id in keys(filter(m -> last(m).type == "lower" && last(m).var == :z,B))
+        ) #dual for z lowerBound
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, qbreak[k = keys(b().K), i = b().K[k].cover, t = b().T],
         q[i,k,t] == u[i,k,t] - v[i,k,t] #q breakdown
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, pbreak[k = keys(b().K), i = b().K[k].cover, t = b().T],
         p[i,k,t] == y[i,k,t] + z[i,k,t] #p breakdown
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, u_y[k = keys(b().K), i = b().K[k].cover, t = b().T],
         u[i,k,t] <= b().K[k].Q * y[i,k,t] # u - y correlation
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, v_z[k = keys(b().K), i = b().K[k].cover, t = b().T],
         v[i,k,t] <= b().K[k].Q * z[i,k,t] # v - z correlation
     )
 
-    @constraint(sp,
-        [k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
-        l[i,j,k,t] <= b().K[k].Q * x[i,j,k,t] # l - x correlation
+    @constraint(sp, xtrav1[k = keys(b().K), i = b().K[k].cover, t = b().T],
+        sum(x[j,i,k,t] for j in b().K[k].cover) == p[i,k,t] #traversal balance (1)
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-        sum(x[j,i,k,t] for j in b().K[k].cover) == p[i,k,t] #traverse in to i
+    @constraint(sp, xtrav2[k = keys(b().K), i = b().K[k].cover, t = b().T],
+        sum(x[i,j,k,t] for j in b().K[k].cover) == p[i,k,t] #traversal balance (1)
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-        sum(x[i,j,k,t] for j in b().K[k].cover) == p[i,k,t] #traverse out from i
-    )
-
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, ltrav[k = keys(b().K), i = b().K[k].cover, t = b().T],
         sum(l[j,i,k,t] for j in b().K[k].cover) -
-        sum(l[i,j,k,t] for j in b().K[k].cover) == q[i,k,t] #vehicle load balance
+        sum(l[i,j,k,t] for j in b().K[k].cover) == q[i,k,t] #load balance
     )
 
-    @constraint(sp, [k = keys(b().K), t = b().T],
-        sum(z[i,k,t] for i in b().K[k].cover) <= b().K[k].freq #maximum manifest
+    @constraint(sp,
+        x_l[k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
+        l[i,j,k,t] <= b().K[k].Q * x[i,j,k,t] # l - x correlation
     )
 
     @constraint(sp, [k = keys(b().K), t = b().T],
@@ -199,6 +265,15 @@ function buildSub(n::node,duals::dval;silent::Bool)
     # ================================
     #    BOUND GENERATOR
     # ================================
+    y_B = keys(filter(m -> last(m).var == :y,B)) #PASTIIN VARIABELNYA Y
+    @constraint(sp, [id = y_B],
+        y[B[id].idx.i, B[id].idx.k, B[id].idx.t] >= B[id].e * o[id]
+    )
+
+    z_B = keys(filter(m -> last(m).var == :z,B)) #PASTIIN VARIABELNYA Z
+    @constraint(sp, [id = z_B],
+        z[B[id].idx.i, B[id].idx.k, B[id].idx.t] >= B[id].e * o[id]
+    )
 
     return sp
 end
@@ -243,44 +318,54 @@ end
 function colGen(n::node;silent::Bool,maxCG::Float64,track::Bool)
     terminate = false
     iter = 0
+    mem = 0
 
     while !terminate
         if iter < maxCG
             mp = master(n;silent=silent)
             if has_values(mp) && has_duals(mp)
-                if track #print master problem obj
-                    println("obj: $(objective_value(mp))")
-                end
+                if objective_value(mp) != mem #terjadi perubahan obj
+                    mem = objective_value(mp) #keep di memory
+                    if track #print master problem obj
+                        println("obj: $(objective_value(mp))")
+                    end
 
-                duals = getDuals(mp)
-                sp = sub(n,duals;silent=silent)
-                if track #print subproblem price
-                    println("price: $(objective_value(sp))")
-                end
+                    duals = getDuals(mp)
+                    sp = sub(n,duals;silent=silent)
+                    if track #print subproblem price
+                        println("price: $(objective_value(sp))")
+                    end
 
-                if isapprox(objective_value(sp), 0, atol = 1e-8) || objective_value(sp) > 0
-                    if isapprox(checkStab(mp), 0, atol = 1e-8)
-                        terminate = true #action
-                        push!(n.status,"EVALUATED") #report
-                        if track
-                            println("EVALUATED")
+                    if isapprox(objective_value(sp),0,atol = 1e-8)||objective_value(sp) > 0
+                        if isapprox(checkStab(mp),0,atol = 1e-8)
+                            terminate = true #action
+                            push!(n.status,"EVALUATED") #report
+                            if track
+                                println("EVALUATED")
+                            end
+                        else
+                            updateStab!(n.stab,0.5) #action
+                            push!(n.status,"STABILIZED") #report
+                            if track
+                                println("STABILIZED")
+                            end
                         end
                     else
-                        updateStab!(n.stab,0.5) #action
-                        push!(n.status,"STABILIZED") #report
+                        push!(n.columns,getCols(sp)) #action
+                        push!(n.status,"ADD_COLUMN") #report
                         if track
-                            println("STABILIZED")
+                            println("ADD_COLUMN")
                         end
                     end
+
+                    iter += 1 #iteration update
                 else
-                    push!(n.columns,getCols(sp)) #action
-                    push!(n.status,"ADD_COLUMN") #report
+                    terminate = true #action
+                    push!(n.status,"NO_IMPROVEMENT")
                     if track
-                        println("ADD_COLUMN")
+                        println("NO_IMPROVEMENT")
                     end
                 end
-
-                iter += 1 #iteration update
             else
                 terminate = true #action
                 push!(n.status,"NO_SOLUTION")
@@ -290,14 +375,14 @@ function colGen(n::node;silent::Bool,maxCG::Float64,track::Bool)
             end
         else
             terminate = true #action
-            push!(n.status,"EVALUATED-TIME OUT") #report
+            push!(n.status,"EVALUATED") #report
             if track
-                println("EVALUATED-TIME OUT")
+                println("EVALUATED")
             end
         end
     end
 
-    if n.status[end] != "NO_SOLUTION"
+    if n.status[end] != "NO_SOLUTION" || n.status[end] != "NO_IMPROVEMENT"
         println("NODE $(n.self) FINISHED.")
     else
         println("NODE $(n.self) FAILED.")
