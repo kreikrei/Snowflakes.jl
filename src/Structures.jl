@@ -71,10 +71,6 @@ end
 struct dval
     λ::JuMP.Containers.DenseAxisArray
     δ::JuMP.Containers.DenseAxisArray
-    μ::JuMP.Containers.DenseAxisArray
-    ν::JuMP.Containers.DenseAxisArray
-    η::JuMP.Containers.DenseAxisArray
-    β::JuMP.Containers.DenseAxisArray
 end
 
 struct bound
