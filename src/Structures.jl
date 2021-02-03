@@ -71,11 +71,14 @@ end
 struct dval
     λ::JuMP.Containers.DenseAxisArray
     δ::JuMP.Containers.DenseAxisArray
+    μ::JuMP.Containers.DenseAxisArray
+    ν::JuMP.Containers.DenseAxisArray
 end
 
 struct bound
-    idx::NamedTuple
-    val::Int64
+    type::Bool
+    vector::col
+    value::Int64
 end
 
 struct stabilizer
@@ -90,7 +93,7 @@ struct node
     parent::UUID
     self::UUID
 
-    #Dynamaic SET
+    #Dynamic SET
     bounds::Vector{bound}
     columns::Vector{col}
 

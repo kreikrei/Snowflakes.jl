@@ -64,7 +64,7 @@ function buildMaster(n::node;silent::Bool)
     )
 
     @constraint(mp, δ[i = keys(b().V), k = keys(b().K), t = b().T],
-        sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)) <= b().K[k].freq
+        sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)) <= b().K[k].freq #maximum start
     )
 
     @constraint(mp, [i = keys(b().V), t = b().T],
@@ -112,7 +112,9 @@ function buildSub(n::node,duals::dval;silent::Bool)
 
     @variable(sp, p[i = keys(b().V), k = keys(b().K), t = b().T] >= 0, Int)
     @variable(sp, y[i = keys(b().V), k = keys(b().K), t = b().T] >= 0, Int)
-    @variable(sp, z[i = keys(b().V), k = keys(b().K), t = b().T] >= 0, Int)
+    @variable(sp,
+        0 <= z[i = keys(b().V), k = keys(b().K), t = b().T] <= b().K[k].freq, Int
+    )
     @variable(sp,
         x[i = collect(keys(b().V)), j = collect(keys(b().V)),
         k = collect(keys(b().K)), t = b().T] >= 0, Int
@@ -144,52 +146,48 @@ function buildSub(n::node,duals::dval;silent::Bool)
                 for i in b().K[k].cover
             )
             for k in keys(b().K), t in b().T
-        ) - #dual part 1
+        ) - #dual for inventory level (λ)
         sum(
             sum(
                 z[i,k,t] * duals.δ[i,k,t]
                 for i in b().K[k].cover
             )
             for k in keys(b().K), t in b().T
-        ) #dual part 2
+        ) #dual for start point (δ)
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, qbreak[k = keys(b().K), i = b().K[k].cover, t = b().T],
         q[i,k,t] == u[i,k,t] - v[i,k,t] #q breakdown
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, pbreak[k = keys(b().K), i = b().K[k].cover, t = b().T],
         p[i,k,t] == y[i,k,t] + z[i,k,t] #p breakdown
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, u_y[k = keys(b().K), i = b().K[k].cover, t = b().T],
         u[i,k,t] <= b().K[k].Q * y[i,k,t] # u - y correlation
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, v_z[k = keys(b().K), i = b().K[k].cover, t = b().T],
         v[i,k,t] <= b().K[k].Q * z[i,k,t] # v - z correlation
     )
 
-    @constraint(sp,
-        [k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
-        l[i,j,k,t] <= b().K[k].Q * x[i,j,k,t] # l - x correlation
+    @constraint(sp, xtrav1[k = keys(b().K), i = b().K[k].cover, t = b().T],
+        sum(x[j,i,k,t] for j in b().K[k].cover) == p[i,k,t] #traversal balance (1)
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-        sum(x[j,i,k,t] for j in b().K[k].cover) == p[i,k,t] #traverse in to i
+    @constraint(sp, xtrav2[k = keys(b().K), i = b().K[k].cover, t = b().T],
+        sum(x[i,j,k,t] for j in b().K[k].cover) == p[i,k,t] #traversal balance (1)
     )
 
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-        sum(x[i,j,k,t] for j in b().K[k].cover) == p[i,k,t] #traverse out from i
-    )
-
-    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+    @constraint(sp, ltrav[k = keys(b().K), i = b().K[k].cover, t = b().T],
         sum(l[j,i,k,t] for j in b().K[k].cover) -
-        sum(l[i,j,k,t] for j in b().K[k].cover) == q[i,k,t] #vehicle load balance
+        sum(l[i,j,k,t] for j in b().K[k].cover) == q[i,k,t] #load balance
     )
 
-    @constraint(sp, [k = keys(b().K), t = b().T],
-        sum(z[i,k,t] for i in b().K[k].cover) <= b().K[k].freq #maximum manifest
+    @constraint(sp,
+        x_l[k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
+        l[i,j,k,t] <= b().K[k].Q * x[i,j,k,t] # l - x correlation
     )
 
     @constraint(sp, [k = keys(b().K), t = b().T],
@@ -243,6 +241,7 @@ end
 function colGen(n::node;silent::Bool,maxCG::Float64,track::Bool)
     terminate = false
     iter = 0
+    mem = 0
 
     while !terminate
         if iter < maxCG
@@ -258,8 +257,8 @@ function colGen(n::node;silent::Bool,maxCG::Float64,track::Bool)
                     println("price: $(objective_value(sp))")
                 end
 
-                if isapprox(objective_value(sp), 0, atol = 1e-8) || objective_value(sp) > 0
-                    if isapprox(checkStab(mp), 0, atol = 1e-8)
+                if isapprox(objective_value(sp),0,atol = 1e-8)||objective_value(sp) > 0
+                    if isapprox(checkStab(mp),0,atol = 1e-8)
                         terminate = true #action
                         push!(n.status,"EVALUATED") #report
                         if track
@@ -290,14 +289,14 @@ function colGen(n::node;silent::Bool,maxCG::Float64,track::Bool)
             end
         else
             terminate = true #action
-            push!(n.status,"EVALUATED-TIME OUT") #report
+            push!(n.status,"EVALUATED") #report
             if track
-                println("EVALUATED-TIME OUT")
+                println("EVALUATED")
             end
         end
     end
 
-    if n.status[end] != "NO_SOLUTION"
+    if n.status[end] != "NO_SOLUTION" || n.status[end] != "NO_IMPROVEMENT"
         println("NODE $(n.self) FINISHED.")
     else
         println("NODE $(n.self) FAILED.")
