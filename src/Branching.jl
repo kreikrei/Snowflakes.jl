@@ -2,115 +2,93 @@
 #    BRANCHING MECHANISMS
 # =========================================================================
 
-function Q(q::col,R::Dict{Int64,col})
-    set = Vector{Int64}()
+function qvec(r::Int64,k::Int64,t::Int64;R::Dict{Int64,col})
+    return col(
+        R[r].u[:,k,t],
+        R[r].v[:,k,t],
+        R[r].l[:,:,k,t],
+        R[r].y[:,k,t],
+        R[r].z[:,k,t],
+        R[r].x[:,:,k,t]
+    )
+end
 
-    for r in keys(R)
-        valy = R[r].y.data .- q.y.data #check is there any y dominated
-        valz = R[r].z.data .- q.z.data #check is there any z dominated
+function dominance(r::col,p::col)
+    u = r.u.data .- p.u.data
+    v = r.v.data .- p.v.data
+    l = r.l.data .- p.l.data
+    y = r.y.data .- p.y.data
+    z = r.z.data .- p.z.data
+    x = r.x.data .- p.x.data
 
-        if isempty(filter(p -> p < 0, valy)) && isempty(filter(p -> p < 0, valz))
-            push!(set,r)
+    uB = isempty(filter(p -> p < 0, u))
+    vB = isempty(filter(p -> p < 0, v))
+    lB = isempty(filter(p -> p < 0, l))
+    yB = isempty(filter(p -> p < 0, y))
+    zB = isempty(filter(p -> p < 0, z))
+    xB = isempty(filter(p -> p < 0, x))
+
+    if uB && vB && lB && yB && zB && xB
+        return true
+    else
+        return false
+    end
+end
+
+function Q(q::col;R::Dict{Int64,col})
+    set = Vector{NamedTuple}()
+
+    for r in keys(R), k in keys(b().K), t in b().T
+        if dominance(qvec(r,k,t;R=R),q)
+            push!(set,(r=r,k=k,t=t))
         end
     end
 
     return set
 end
 
+function positiveComp(q::col)
+    return sum(q.u) + sum(q.v) + sum(q.l) + sum(q.y) + sum(q.z) + sum(q.x)
+end
+
 function separate(n::node)
+    collection = DataFrame(
+        q = col[], val = Float64[],
+        set = Vector{NamedTuple}[],
+        positive=Float64[]
+    )
+
     R = Dict(1:length(n.columns) .=> n.columns)
     θ = value.(master(n).obj_dict[:θ])
 
     for r in keys(R), k in keys(b().K), t in b().T
-        tot = sum(θ[r,k,t] for r in Q(R[r],R))
-        if !isinteger(tot)
-            return (r=r,k=k,t=t)
+        tot = sum(θ[q.r,q.k,q.t] for q in Q(qvec(r,k,t;R=R);R=R))
+        if !(abs(round(tot) - tot) < 1e-15) #isinteger(tot)
+            append!(collection,
+                DataFrame(
+                    q = qvec(r,k,t;R=R),
+                    val = tot,
+                    set = [Q(qvec(r,k,t;R=R);R=R)],
+                    positive = positiveComp(qvec(r,k,t;R=R)))
+            )
         end
     end
+
+    return collection
 end
 
 function integerCheck(n::node)
     integer = true
-
     sol = origin(n)
 
-    #z check
-    for z in sol.z, y in sol.y
-        if !isinteger(z)
-            integer = false
-            break
-        end
-
-        if !isinteger(y)
+    for i in keys(b().V), k in keys(b().K), t in b().T
+        if !isinteger(sol.z[i,k,t]) || !isinteger(sol.y[i,k,t])
             integer = false
             break
         end
     end
 
     return integer
-end
-
-function fractionalPart(var::Float64)
-    a = var - floor(var)
-    b = ceil(var) - var
-
-    return min(a,b)
-end
-
-function exploreFrac(n::node)
-    R = Dict(1:length(n.columns) .=> n.columns)
-    mp = master(n)
-    θ = value.(mp.obj_dict[:θ])
-    collection = DataFrame(
-        var=Symbol[],
-        idx=NamedTuple[],
-        e=Int64[],
-        r=Vector{Int64}[],
-        val=Float64[],
-        frac=Float64[]
-    )
-
-    for i in keys(b().V), k in keys(b().K), t in b().T
-        for e in collect(1:b().K[k].freq)
-            iter = keys(filter(m -> last(m).y[i,k,t] >= e,R)) #iter y
-
-            if !isempty(iter)
-                tot = sum(
-                    θ[r,k,t]
-                    for r in iter
-                )
-
-                if tot > 0 && !isinteger(tot)
-                    append!(collection,DataFrame(
-                            var=:y, idx=(i=i,k=k,t=t),
-                            e=e, r=[collect(iter)], val=tot,
-                            frac=fractionalPart(tot)
-                        )
-                    )
-                end
-            end
-
-            iter = keys(filter(m -> last(m).z[i,k,t] >= e,R)) #iter z
-
-            if !isempty(iter)
-                tot = sum(
-                    θ[r,k,t]
-                    for r in iter
-                )
-
-                if tot > 0 && !isinteger(tot)
-                    append!(collection,DataFrame(
-                            var=:z, idx=(i=i,k=k,t=t),
-                            e=e, r=[collect(iter)], val=tot,
-                            frac=fractionalPart(tot)
-                        )
-                    )
-                end
-            end
-        end
-    end
-
-    return collection
 end
 
 function createBranch(n::node,seeds::DataFrame)
@@ -122,14 +100,14 @@ function createBranch(n::node,seeds::DataFrame)
                 node(
                     n.self, #parent
                     uuid1(), #self
+
                     vcat(n.bounds, #bounds
                         bound(
-                            s.var, br,
-                            s.idx, s.e,
+                            br, s.q,
                             if br == "upper"
-                                ceil(s.val)
-                            else
                                 floor(s.val)
+                            else
+                                ceil(s.val)
                             end
                         )
                     ),

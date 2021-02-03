@@ -55,14 +55,12 @@ struct status
 end
 
 struct col
-    #q related
-    q::JuMP.Containers.DenseAxisArray
+    #quantity
     u::JuMP.Containers.DenseAxisArray
     v::JuMP.Containers.DenseAxisArray
     l::JuMP.Containers.DenseAxisArray
 
-    #0-1 related
-    p::JuMP.Containers.DenseAxisArray
+    #decision
     y::JuMP.Containers.DenseAxisArray
     z::JuMP.Containers.DenseAxisArray
     x::JuMP.Containers.DenseAxisArray
@@ -71,12 +69,12 @@ end
 struct dval
     λ::JuMP.Containers.DenseAxisArray
     δ::JuMP.Containers.DenseAxisArray
-    #μ::JuMP.Containers.DenseAxisArray
-    #ν::JuMP.Containers.DenseAxisArray
+    μ::JuMP.Containers.DenseAxisArray
+    ν::JuMP.Containers.DenseAxisArray
 end
 
 struct bound
-    type::Bool
+    type::String
     vector::col
     value::Int64
 end

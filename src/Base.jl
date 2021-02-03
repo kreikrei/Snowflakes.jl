@@ -118,10 +118,8 @@ end
 
 function origin(n::node)
     z = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(b().V),keys(b().K),b().T)
-    q = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(b().V),keys(b().K),b().T)
     y = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(b().V),keys(b().K),b().T)
     u = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(b().V),keys(b().K),b().T)
-    p = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(b().V),keys(b().K),b().T)
     v = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(b().V),keys(b().K),b().T)
     x = JuMP.Containers.DenseAxisArray{Float64}(
         undef,collect(keys(b().V)),collect(keys(b().V)),collect(keys(b().K)),b().T
@@ -137,10 +135,8 @@ function origin(n::node)
     for i in keys(b().V), k in keys(b().K), t in b().T
         z[i,k,t] = value(sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)))
         y[i,k,t] = value(sum(R[r].y[i,k,t] * θ[r,k,t] for r in keys(R)))
-        p[i,k,t] = value(sum(R[r].p[i,k,t] * θ[r,k,t] for r in keys(R)))
         u[i,k,t] = value(sum(R[r].u[i,k,t] * θ[r,k,t] for r in keys(R)))
         v[i,k,t] = value(sum(R[r].v[i,k,t] * θ[r,k,t] for r in keys(R)))
-        q[i,k,t] = value(sum(R[r].q[i,k,t] * θ[r,k,t] for r in keys(R)))
 
         for j in keys(b().V)
             x[i,j,k,t] = value(sum(R[r].x[i,j,k,t] * θ[r,k,t] for r in keys(R)))
@@ -149,7 +145,7 @@ function origin(n::node)
     end
 
     return col(
-        q,u,v,l,
-        p,y,z,x
+        u,v,l,
+        y,z,x
     )
 end

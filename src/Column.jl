@@ -16,14 +16,17 @@ function buildMaster(n::node)
     end
 
     R = Dict(1:length(n.columns) .=> n.columns)
+    B = Dict(1:length(n.bounds) .=> n.bounds)
 
-    @variable(mp, θ[keys(R), keys(b().K), b().T] >= 0) #column decision
-    @variable(mp, I[keys(b().V), vcat(first(b().T)-1, b().T)]) #inventory level
-    @variable(mp, 0 <= slack[i = keys(b().V), t = b().T] <= n.stab.slLim[i,t]) #slack var
-    @variable(mp, 0 <= surp[i = keys(b().V), t = b().T] <= n.stab.suLim[i,t]) #surp var
+    # ================================
+    #    MODEL CONSTRUCTION
+    # ================================
+    @variable(mp, θ[keys(R), keys(b().K), b().T] >= 0)
+    @variable(mp, I[keys(b().V), vcat(first(b().T) - 1, b().T)])
+    @variable(mp, 0 <= slack[i = keys(b().V), t = b().T] <= n.stab.slLim[i,t])
+    @variable(mp, 0 <= surp[i = keys(b().V), t = b().T] <= n.stab.suLim[i,t])
 
-    @objective(
-        mp, Min,
+    @objective(mp, Min,
         sum(
             θ[r,k,t] * (
                 sum(
@@ -43,7 +46,7 @@ function buildMaster(n::node)
                 )
             )
             for r in keys(R), k in keys(b().K), t in b().T
-        ) + #pickup delivery costs
+        ) + #column costs
         sum(
             b().V[i].h * I[i,t]
             for i in keys(b().V), t in b().T
@@ -59,12 +62,14 @@ function buildMaster(n::node)
     )
 
     @constraint(mp, λ[i = keys(b().V), t = b().T],
-        I[i,t-1] + sum(R[r].q[i,k,t] * θ[r,k,t] for r in keys(R), k in keys(b().K)) +
-        slack[i,t] - surp[i,t] == b().d[i,t] + I[i,t] #inventory balance
+        I[i,t - 1] + sum(R[r].u[i,k,t] * θ[r,k,t] for r in keys(R), k in keys(b().K))
+        + slack[i,t] - surp[i,t] ==
+        sum(R[r].v[i,k,t] * θ[r,k,t] for r in keys(R), k in keys(b().K)) +
+        b().d[i,t] + I[i,t]
     )
 
-    @constraint(mp, δ[i = keys(b().V), k = keys(b().K), t = b().T],
-        sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)) <= b().K[k].freq #maximum start
+    @constraint(mp, δ[k = keys(b().K), t = b().T],
+        sum(θ[r,k,t] for r in keys(R)) <= 1 #convexity constraint
     )
 
     @constraint(mp, [i = keys(b().V), t = b().T],
@@ -78,6 +83,16 @@ function buildMaster(n::node)
     # ================================
     #    BOUND GENERATOR
     # ================================
+    uB = filter(b -> last(b).type == "upper",B)
+    lB = filter(b -> last(b).type == "lower",B)
+
+    @constraint(mp, μ[b = keys(uB)],
+        sum(θ[q.r,q.k,q.t] for q in Q(B[b].vector,R=R)) <= B[b].value
+    )
+
+    @constraint(mp, ν[b = keys(lB)],
+        sum(θ[q.r,q.k,q.t] for q in Q(B[b].vector,R=R)) >= B[b].value
+    )
 
     return mp
 end
@@ -85,8 +100,10 @@ end
 function getDuals(mp::Model)
     λ = dual.(mp.obj_dict[:λ])
     δ = dual.(mp.obj_dict[:δ])
+    μ = dual.(mp.obj_dict[:μ])
+    ν = dual.(mp.obj_dict[:ν])
 
-    return dval(λ,δ)
+    return dval(λ,δ,μ,ν)
 end
 
 function sub(n::node,duals::dval)
@@ -102,26 +119,27 @@ function buildSub(n::node,duals::dval)
         set_silent(sp)
     end
 
-    @variable(sp, q[i = keys(b().V), k = keys(b().K), t = b().T])
-    @variable(sp, u[i = keys(b().V), k = keys(b().K), t = b().T] >= 0)
-    @variable(sp, v[i = keys(b().V), k = keys(b().K), t = b().T] >= 0)
-    @variable(sp,
-        l[i = collect(keys(b().V)), j = collect(keys(b().V)),
-        k = collect(keys(b().K)), t = b().T] >= 0
-    ) #quantity variables
+    R = Dict(1:length(n.columns) .=> n.columns)
+    B = Dict(1:length(n.bounds) .=> n.bounds)
 
-    @variable(sp, p[i = keys(b().V), k = keys(b().K), t = b().T] >= 0, Int)
-    @variable(sp, y[i = keys(b().V), k = keys(b().K), t = b().T] >= 0, Int)
+    # ================================
+    #    MODEL CONSTRUCTION
+    # ================================
+    @variable(sp, u[keys(b().V), keys(b().K), b().T] >= 0, Int)
+    @variable(sp, v[keys(b().V), keys(b().K), b().T] >= 0, Int)
     @variable(sp,
-        0 <= z[i = keys(b().V), k = keys(b().K), t = b().T] <= b().K[k].freq, Int
+        l[collect(keys(b().V)), collect(keys(b().V)), collect(keys(b().K)), b().T] >= 0, Int
     )
-    @variable(sp,
-        x[i = collect(keys(b().V)), j = collect(keys(b().V)),
-        k = collect(keys(b().K)), t = b().T] >= 0, Int
-    ) #0-1 variables
 
-    @objective(
-        sp, Min,
+    @variable(sp, y[keys(b().V), keys(b().K), b().T] >= 0, Int)
+    @variable(sp, 0 <= z[i = keys(b().V), k = keys(b().K), t = b().T] <= b().K[k].freq, Int)
+    @variable(sp,
+        x[collect(keys(b().V)), collect(keys(b().V)), collect(keys(b().K)), b().T] >= 0, Int
+    )
+
+    @variable(sp, o[keys(B)], Bin)
+
+    @objective(sp, Min,
         sum(
             sum(
                 b().dist[i,j] * (
@@ -139,79 +157,123 @@ function buildSub(n::node,duals::dval)
                 for i in b().K[k].cover
             )
             for k in keys(b().K), t in b().T
-        ) - #column cost
+        ) -
         sum(
             sum(
-                q[i,k,t] * duals.λ[i,t]
+                (u[i,k,t] - v[i,k,t]) * duals.λ[i,t]
                 for i in b().K[k].cover
             )
             for k in keys(b().K), t in b().T
-        ) - #dual for inventory level (λ)
+        ) -
         sum(
-            sum(
-                z[i,k,t] * duals.δ[i,k,t]
-                for i in b().K[k].cover
-            )
+            duals.δ[k,t]
             for k in keys(b().K), t in b().T
-        ) #dual for start point (δ)
-    )
-
-    @constraint(sp, qbreak[k = keys(b().K), i = b().K[k].cover, t = b().T],
-        q[i,k,t] == u[i,k,t] - v[i,k,t] #q breakdown
-    )
-
-    @constraint(sp, pbreak[k = keys(b().K), i = b().K[k].cover, t = b().T],
-        p[i,k,t] == y[i,k,t] + z[i,k,t] #p breakdown
-    )
-
-    @constraint(sp, u_y[k = keys(b().K), i = b().K[k].cover, t = b().T],
-        u[i,k,t] <= b().K[k].Q * y[i,k,t] # u - y correlation
-    )
-
-    @constraint(sp, v_z[k = keys(b().K), i = b().K[k].cover, t = b().T],
-        v[i,k,t] <= b().K[k].Q * z[i,k,t] # v - z correlation
-    )
-
-    @constraint(sp, xtrav1[k = keys(b().K), i = b().K[k].cover, t = b().T],
-        sum(x[j,i,k,t] for j in b().K[k].cover) == p[i,k,t] #traversal balance (1)
-    )
-
-    @constraint(sp, xtrav2[k = keys(b().K), i = b().K[k].cover, t = b().T],
-        sum(x[i,j,k,t] for j in b().K[k].cover) == p[i,k,t] #traversal balance (1)
-    )
-
-    @constraint(sp, ltrav[k = keys(b().K), i = b().K[k].cover, t = b().T],
-        sum(l[j,i,k,t] for j in b().K[k].cover) -
-        sum(l[i,j,k,t] for j in b().K[k].cover) == q[i,k,t] #load balance
-    )
-
-    @constraint(sp,
-        x_l[k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
-        l[i,j,k,t] <= b().K[k].Q * x[i,j,k,t] # l - x correlation
+        ) -
+        sum(
+            o[b] * duals.μ[b]
+            for b in keys(filter(b -> last(b).type == "upper",B))
+        ) -
+        sum(
+            o[b] * duals.ν[b]
+            for b in keys(filter(b -> last(b).type == "lower",B))
+        )
     )
 
     @constraint(sp, [k = keys(b().K), t = b().T],
-        sum(q[i,k,t] for i in b().K[k].cover) == 0 #all pickup delivered
+        sum(u[i,k,t] - v[i,k,t] for i in b().K[k].cover) == 0 #all pickup delivered
+    )
+
+    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+        u[i,k,t] <= b().K[k].Q * y[i,k,t] #u-y corr
+    )
+
+    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+        v[i,k,t] <= b().K[k].Q * z[i,k,t] #v-z corr
+    )
+
+    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+        sum(x[j,i,k,t] for j in b().K[k].cover) == y[i,k,t] + z[i,k,t] #traverse in
+    )
+
+    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+        sum(x[i,j,k,t] for j in b().K[k].cover) == y[i,k,t] + z[i,k,t] #traverse out
+    )
+
+    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+        sum(l[j,i,k,t] for j in b().K[k].cover) -
+        sum(l[i,j,k,t] for j in b().K[k].cover) == u[i,k,t] - v[i,k,t] #load balance
+    )
+
+    @constraint(sp, [k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
+        l[i,j,k,t] <= b().K[k].Q * x[i,j,k,t] #l-x corr
     )
 
     # ================================
     #    BOUND GENERATOR
     # ================================
+    uB = filter(b -> last(b).type == "upper",B)
+    lB = filter(b -> last(b).type == "lower",B)
+
+    for id in keys(uB)
+        #@constraint(sp, o[id] == 0)
+
+        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+            u[i,k,t] <= (B[id].vector.u[i] - 1) * (1 - o[id])
+        )
+        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+            v[i,k,t] <= (B[id].vector.v[i] - 1) * (1 - o[id])
+        )
+        @constraint(sp,
+            [k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
+            l[i,j,k,t] <= (B[id].vector.l[i,j] - 1) * (1 - o[id])
+        )
+        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+            y[i,k,t] <= (B[id].vector.y[i] - 1) * (1 - o[id])
+        )
+        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+            z[i,k,t] <= (B[id].vector.z[i] - 1) * (1 - o[id])
+        )
+        @constraint(sp,
+            [k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
+            x[i,j,k,t] <= (B[id].vector.x[i,j] - 1) * (1 - o[id])
+        )
+    end
+
+    for id in keys(lB)
+        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+            u[i,k,t] >= B[id].vector.u[i] * o[id]
+        )
+        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+            v[i,k,t] >= B[id].vector.v[i] * o[id]
+        )
+        @constraint(sp,
+            [k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
+            l[i,j,k,t] >= B[id].vector.l[i,j] * o[id]
+        )
+        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+            y[i,k,t] >= B[id].vector.y[i] * o[id]
+        )
+        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
+            z[i,k,t] >= B[id].vector.z[i] * o[id]
+        )
+        @constraint(sp,
+            [k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
+            x[i,j,k,t] >= B[id].vector.x[i,j] * o[id]
+        )
+    end
 
     return sp
 end
 
 function getCols(sp::Model)
-    q = value.(sp.obj_dict[:q])
     u = value.(sp.obj_dict[:u])
     v = value.(sp.obj_dict[:v])
     l = value.(sp.obj_dict[:l])
-    p = value.(sp.obj_dict[:p])
     y = value.(sp.obj_dict[:y])
     z = value.(sp.obj_dict[:z])
     x = value.(sp.obj_dict[:x])
 
-    return col(q,u,v,l,p,y,z,x)
+    return col(u,v,l,y,z,x)
 end
 
 function updateStab!(stab::stabilizer,param::Float64)
@@ -246,6 +308,7 @@ function colGen(n::node;maxCG::Float64,track::Bool)
     while !terminate
         if iter < maxCG
             mp = master(n)
+
             if has_values(mp) && has_duals(mp)
                 if track #print master problem obj
                     println("obj: $(objective_value(mp))")
@@ -253,11 +316,12 @@ function colGen(n::node;maxCG::Float64,track::Bool)
 
                 duals = getDuals(mp)
                 sp = sub(n,duals)
+
                 if track #print subproblem price
                     println("price: $(objective_value(sp))")
                 end
 
-                if isapprox(objective_value(sp),0,atol = 1e-8)||objective_value(sp) > 0
+                if isapprox(objective_value(sp),0,atol = 1e-8) || objective_value(sp) > 0
                     if isapprox(checkStab(mp),0,atol = 1e-8)
                         terminate = true #action
                         push!(n.status,"EVALUATED") #report
