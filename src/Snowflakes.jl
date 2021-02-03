@@ -29,7 +29,7 @@ export set_slack_coeff!
 export sl_C
 export set_surp_coeff!
 export su_C
-export set_silent!
+export set_silence!
 export silent
 
 export b
