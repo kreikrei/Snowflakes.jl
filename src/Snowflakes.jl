@@ -49,6 +49,8 @@ export updateStab!
 export checkStab
 export colGen
 
+export Q
+export separate
 export integerCheck
 export fractionalPart
 export exploreFrac
