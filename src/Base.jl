@@ -95,21 +95,21 @@ function stats(res = b())
     )
 end
 
-function initStab(res = b();slC::Float64,suC::Float64)
-    slackCoeff = slC
-    surpCoeff = suC
+function initStab(res = b())
+    slackCoeff = sl_C()
+    surpCoeff = su_C()
     slackLim = abs.(res.d)
     surpLim = abs.(res.d)
 
     return stabilizer(slackCoeff,surpCoeff,slackLim,surpLim)
 end
 
-function root(res = b();slC::Float64,suC::Float64)
+function root(res = b())
     id = uuid1()
     root = node(
         id, id,
-        bounds([],[],[],[],[],[]),bounds([],[],[],[],[],[]),Vector{col}(),
-        initStab(res,slC = slC, suC = suC),
+        Vector{bound}(),Vector{col}(),
+        initStab(),
         ["UNVISITED"]
     )
 

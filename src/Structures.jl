@@ -73,15 +73,16 @@ struct dval
     δ::JuMP.Containers.DenseAxisArray
     μ::JuMP.Containers.DenseAxisArray
     ν::JuMP.Containers.DenseAxisArray
+    η::JuMP.Containers.DenseAxisArray
+    β::JuMP.Containers.DenseAxisArray
 end
 
-struct bounds
-    id::Vector{Int64} #jangan lupa harus bisa ttep dibedain uB dan lB
-    i::Vector{Int64}
-    k::Vector{Int64}
-    t::Vector{Int64}
-    e::Vector{Int64}
-    val::Vector{Int64}
+struct bound
+    var::Symbol
+    type::String
+    idx::NamedTuple
+    e::Int64
+    val::Int64
 end
 
 struct stabilizer
@@ -97,8 +98,7 @@ struct node
     self::UUID
 
     #Dynamic SET
-    uB::bounds
-    lB::bounds
+    bounds::Vector{bound}
     columns::Vector{col}
 
     #SUPPORT

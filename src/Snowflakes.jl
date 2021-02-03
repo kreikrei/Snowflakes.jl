@@ -22,16 +22,20 @@ include("Column.jl")
 include("Settings.jl")
 include("Branching.jl")
 
+export set_default_optimizer!
+export get_default_optimizer
+export reset_default_optimizer
+export set_slack_coeff!
+export sl_C
+export set_surp_coeff!
+export su_C
+
 export b
 export extract!
 export stats
 export initStab
 export root
 export origin
-
-export set_default_optimizer!
-export get_default_optimizer
-export reset_default_optimizer
 
 export master
 export buildMaster
@@ -42,5 +46,10 @@ export getCols
 export updateStab!
 export checkStab
 export colGen
+
+export integerCheck
+export fractionalPart
+export exploreFrac
+export createBranch
 
 end
