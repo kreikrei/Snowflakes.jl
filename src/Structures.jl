@@ -71,14 +71,14 @@ end
 struct dval
     λ::JuMP.Containers.DenseAxisArray
     δ::JuMP.Containers.DenseAxisArray
+    μ::JuMP.Containers.DenseAxisArray
+    ν::JuMP.Containers.DenseAxisArray
 end
 
 struct bound
-    var::Symbol
-    type::String
-    idx::NamedTuple
-    e::Int64
-    val::Int64
+    type::Bool
+    vector::col
+    value::Int64
 end
 
 struct stabilizer
