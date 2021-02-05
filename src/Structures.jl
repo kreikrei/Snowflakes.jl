@@ -75,6 +75,7 @@ end
 
 struct bound
     type::String
+    idx::NamedTuple #informasi tentang (k,t)
     vector::col
     value::Int64
 end
@@ -93,7 +94,7 @@ struct node
 
     #Dynamic SET
     bounds::Vector{bound}
-    columns::Vector{col}
+    columns::Vector{Pair{NamedTuple,Snowflakes.col}}
 
     #SUPPORT
     stab::stabilizer

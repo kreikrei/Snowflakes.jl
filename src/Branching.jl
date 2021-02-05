@@ -14,33 +14,27 @@ function qvec(r::Int64,k::Int64,t::Int64;R::Dict{Int64,col})
 end
 
 function dominance(r::col,p::col)
-    u = r.u.data .- p.u.data
-    v = r.v.data .- p.v.data
-    l = r.l.data .- p.l.data
     y = r.y.data .- p.y.data
     z = r.z.data .- p.z.data
     x = r.x.data .- p.x.data
 
-    uB = isempty(filter(p -> p < 0, u))
-    vB = isempty(filter(p -> p < 0, v))
-    lB = isempty(filter(p -> p < 0, l))
     yB = isempty(filter(p -> p < 0, y))
     zB = isempty(filter(p -> p < 0, z))
     xB = isempty(filter(p -> p < 0, x))
 
-    if uB && vB && lB && yB && zB && xB
+    if yB && zB && xB
         return true
     else
         return false
     end
 end
 
-function Q(q::col;R::Dict{Int64,col})
-    set = Vector{NamedTuple}()
+function Q(vector::col,idx::NamedTuple;R::Dict{Int64,col})
+    set = Vector{Int64}()
 
-    for r in keys(R), k in keys(b().K), t in b().T
-        if dominance(qvec(r,k,t;R=R),q)
-            push!(set,(r=r,k=k,t=t))
+    for r in keys(R)
+        if dominance(qvec(r,idx.k,idx.t;R=R),vector)
+            push!(set,r)
         end
     end
 
@@ -48,13 +42,13 @@ function Q(q::col;R::Dict{Int64,col})
 end
 
 function positiveComp(q::col)
-    return sum(q.u) + sum(q.v) + sum(q.l) + sum(q.y) + sum(q.z) + sum(q.x)
+    return sum(q.y) + sum(q.z) + sum(q.x)
 end
 
 function separate(n::node)
     collection = DataFrame(
-        q = col[], val = Float64[],
-        set = Vector{NamedTuple}[],
+        q = col[], idx = NamedTuple[], val = Float64[],
+        set = Vector{Int64}[],
         positive=Float64[]
     )
 
@@ -62,14 +56,16 @@ function separate(n::node)
     θ = value.(master(n).obj_dict[:θ])
 
     for r in keys(R), k in keys(b().K), t in b().T
-        tot = sum(θ[q.r,q.k,q.t] for q in Q(qvec(r,k,t;R=R);R=R))
+        tot = sum(θ[q,k,t] for q in Q(qvec(r,k,t;R=R),(k=k,t=t);R=R))
         if !(abs(round(tot) - tot) < 1e-15) #isinteger(tot)
             append!(collection,
                 DataFrame(
                     q = qvec(r,k,t;R=R),
+                    idx = (k=k,t=t),
                     val = tot,
-                    set = [Q(qvec(r,k,t;R=R);R=R)],
-                    positive = positiveComp(qvec(r,k,t;R=R)))
+                    set = [Q(qvec(r,k,t;R=R),(k=k,t=t);R=R)],
+                    positive = positiveComp(qvec(r,k,t;R=R))
+                )
             )
         end
     end
@@ -103,7 +99,7 @@ function createBranch(n::node,seeds::DataFrame)
 
                     vcat(n.bounds, #bounds
                         bound(
-                            br, s.q,
+                            br, s.idx, s.q,
                             if br == "upper"
                                 floor(s.val)
                             else

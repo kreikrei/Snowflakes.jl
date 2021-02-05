@@ -87,11 +87,11 @@ function buildMaster(n::node)
     lB = filter(b -> last(b).type == "lower",B)
 
     @constraint(mp, μ[b = keys(uB)],
-        sum(θ[q.r,q.k,q.t] for q in Q(B[b].vector,R=R)) <= B[b].value
+        sum(θ[q,B[b].idx.k,B[b].idx.t] for q in Q(B[b].vector,B[b].idx;R=R)) <= B[b].value
     )
 
     @constraint(mp, ν[b = keys(lB)],
-        sum(θ[q.r,q.k,q.t] for q in Q(B[b].vector,R=R)) >= B[b].value
+        sum(θ[q,B[b].idx.k,B[b].idx.t] for q in Q(B[b].vector,B[b].idx;R=R)) >= B[b].value
     )
 
     return mp
@@ -208,57 +208,63 @@ function buildSub(n::node,duals::dval)
         l[i,j,k,t] <= b().K[k].Q * x[i,j,k,t] #l-x corr
     )
 
+    for k in keys(b().K), t in b().T
+        for i in keys(b().V)
+            if !(i in b().K[k].cover)
+                @constraint(sp, z[i,k,t] == 0)
+                @constraint(sp, y[i,k,t] == 0)
+            end
+        end
+    end
+
     # ================================
     #    BOUND GENERATOR
     # ================================
-    uB = filter(b -> last(b).type == "upper",B)
-    lB = filter(b -> last(b).type == "lower",B)
+    for id in keys(B)
+        y_sup = filter(p -> B[id].vector.y[p] > 0,collect(B[id].vector.y.axes[1])) #set of i
+        𝕪 = @variable(sp, [y_sup], Bin)
+        @constraint(sp, [i = y_sup],
+            B[id].vector.y[i] * 𝕪[i] <= y[i,B[id].idx.k,B[id].idx.t]
+        )
+        @constraint(sp, [i = y_sup],
+            y[i,B[id].idx.k,B[id].idx.t] <= (B[id].vector.y[i] - 1) +
+            (length(b().K[B[id].idx.k].cover) * b().K[B[id].idx.k].freq -
+            B[id].vector.y[i] + 1) * 𝕪[i]
+        )
+        @constraint(sp, [i = y_sup], o[id] <= 𝕪[i])
 
-    for id in keys(uB)
-        #@constraint(sp, o[id] == 0)
+        z_sup = filter(p -> B[id].vector.z[p] > 0,collect(B[id].vector.z.axes[1]))
+        𝕫 = @variable(sp, [z_sup], Bin)
+        @constraint(sp, [i = z_sup],
+            B[id].vector.z[i] * 𝕫[i] <= z[i,B[id].idx.k,B[id].idx.t]
+        )
+        @constraint(sp, [i = z_sup],
+            z[i,B[id].idx.k,B[id].idx.t] <= (B[id].vector.z[i] - 1) +
+            (b().K[B[id].idx.k].freq -
+            B[id].vector.z[i] + 1) * 𝕫[i]
+        )
+        @constraint(sp, [i = z_sup], o[id] <= 𝕫[i])
 
-        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-            u[i,k,t] <= (B[id].vector.u[i] - 1) * (1 - o[id])
+        x_sup = filter(p -> B[id].vector.x[first(p),last(p)] > 0,
+        collect(combinations(B[id].vector.x.axes[1],2)))
+        𝕩 = @variable(sp, [x_sup], Bin)
+        @constraint(sp, [i = x_sup],
+            B[id].vector.x[first(i),last(i)] * 𝕩[i] <=
+            x[first(i),last(i),B[id].idx.k,B[id].idx.t]
         )
-        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-            v[i,k,t] <= (B[id].vector.v[i] - 1) * (1 - o[id])
+        @constraint(sp, [i = x_sup],
+            x[first(i),last(i),B[id].idx.k,B[id].idx.t] <=
+            (B[id].vector.x[first(i),last(i)] - 1) +
+            (length(b().K[B[id].idx.k].cover) * b().K[B[id].idx.k].freq -
+            B[id].vector.x[first(i),last(i)] + 1) * 𝕩[i]
         )
-        @constraint(sp,
-            [k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
-            l[i,j,k,t] <= (B[id].vector.l[i,j] - 1) * (1 - o[id])
-        )
-        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-            y[i,k,t] <= (B[id].vector.y[i] - 1) * (1 - o[id])
-        )
-        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-            z[i,k,t] <= (B[id].vector.z[i] - 1) * (1 - o[id])
-        )
-        @constraint(sp,
-            [k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
-            x[i,j,k,t] <= (B[id].vector.x[i,j] - 1) * (1 - o[id])
-        )
-    end
+        @constraint(sp, [i = x_sup], o[id] <= 𝕩[i])
 
-    for id in keys(lB)
-        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-            u[i,k,t] >= B[id].vector.u[i] * o[id]
-        )
-        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-            v[i,k,t] >= B[id].vector.v[i] * o[id]
-        )
-        @constraint(sp,
-            [k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
-            l[i,j,k,t] >= B[id].vector.l[i,j] * o[id]
-        )
-        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-            y[i,k,t] >= B[id].vector.y[i] * o[id]
-        )
-        @constraint(sp, [k = keys(b().K), i = b().K[k].cover, t = b().T],
-            z[i,k,t] >= B[id].vector.z[i] * o[id]
-        )
-        @constraint(sp,
-            [k = keys(b().K), i = b().K[k].cover, j = b().K[k].cover, t = b().T],
-            x[i,j,k,t] >= B[id].vector.x[i,j] * o[id]
+        @constraint(sp, o[id] >= 1 - (
+                sum(1 - 𝕪[i] for i in y_sup) +
+                sum(1 - 𝕫[i] for i in z_sup) +
+                sum(1 - 𝕩[i] for i in x_sup)
+            )
         )
     end
 
@@ -360,10 +366,10 @@ function colGen(n::node;maxCG::Float64,track::Bool)
         end
     end
 
-    if n.status[end] != "NO_SOLUTION" || n.status[end] != "NO_IMPROVEMENT"
-        println("NODE $(n.self) FINISHED.")
-    else
+    if n.status[end] == "NO_SOLUTION"
         println("NODE $(n.self) FAILED.")
+    else
+        println("NODE $(n.self) FINISHED.")
     end
 
     return n
