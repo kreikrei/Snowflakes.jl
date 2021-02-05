@@ -94,7 +94,7 @@ struct node
 
     #Dynamic SET
     bounds::Vector{bound}
-    columns::Vector{Pair{NamedTuple,Snowflakes.col}}
+    columns::Vector{col}
 
     #SUPPORT
     stab::stabilizer
