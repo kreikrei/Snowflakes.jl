@@ -200,6 +200,14 @@ function buildSub(n::node,duals::dval)
         l[i,j,k,t] <= b().K[k].Q * x[i,j,k,t] #l-x corr
     )
 
+    @constraint(sp, [k = keys(b().K),
+        n = [i for i in keys(b().V) if !(i in b().K[k].cover)], t = b().T], z[n,k,t] == 0
+    )
+
+    @constraint(sp, [k = keys(b().K),
+        n = [i for i in keys(b().V) if !(i in b().K[k].cover)], t = b().T], y[n,k,t] == 0
+    )
+
     # ================================
     #    BOUND GENERATOR
     # ================================
