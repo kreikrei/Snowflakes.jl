@@ -83,15 +83,15 @@ function buildMaster(n::node)
     # ================================
     #    BOUND GENERATOR
     # ================================
-    uB = filter(b -> last(b).type == "upper",B)
-    lB = filter(b -> last(b).type == "lower",B)
+    ≲ = filter(b -> last(b).type == "≲",B)
+    ≳ = filter(b -> last(b).type == "≳",B)
 
-    @constraint(mp, μ[b = keys(uB)],
-        sum(θ[q,B[b].idx.k,B[b].idx.t] for q in Q(B[b].vector,B[b].idx;R=R)) <= B[b].value
+    @constraint(mp, μ[b = keys(≲)],
+        sum(θ[q.r,q,k,q.t] for q in Q(B[b].B,R)) <= B[b].κ
     )
 
-    @constraint(mp, ν[b = keys(lB)],
-        sum(θ[q,B[b].idx.k,B[b].idx.t] for q in Q(B[b].vector,B[b].idx;R=R)) >= B[b].value
+    @constraint(mp, ν[b = keys(≳)],
+        sum(θ[q.r,q.k,q.t] for q in Q(B[b].B,R)) >= B[b].κ
     )
 
     return mp
