@@ -126,7 +126,7 @@ function buildMaster(n::node)
     ≳ = filter(b -> last(b).type == "≳",B)
 
     @constraint(mp, μ[b = keys(≲)],
-        sum(θ[q.r,q,k,q.t] for q in Q(B[b].B,R)) <= B[b].κ
+        sum(θ[q.r,q.k,q.t] for q in Q(B[b].B,R)) <= B[b].κ
     )
 
     @constraint(mp, ν[b = keys(≳)],
@@ -179,8 +179,8 @@ function buildSub(n::node,duals::dval)
         x[collect(keys(b().V)), collect(keys(b().V)), collect(keys(b().K)), b().T] >= 0, Int
     )
 
-    @variable(sp, g[keys(≲)], Bin)
-    @variable(sp, h[keys(≳)], Bin)
+    @variable(sp, g[keys(≲), keys(b().K), b().T], Bin)
+    @variable(sp, h[keys(≳), keys(b().K), b().T], Bin)
 
     @objective(sp, Min,
         sum(
@@ -211,14 +211,20 @@ function buildSub(n::node,duals::dval)
         sum(
             duals.δ[k,t]
             for k in keys(b().K), t in b().T
-        ) +
-        sum(
-            g[j] * duals.μ[j]
-            for j in keys(≲)
         ) -
         sum(
-            h[j] * duals.ν[j]
-            for j in keys(≳)
+            sum(
+                g[j,k,t] * duals.μ[j]
+                for j in keys(≲)
+            )
+            for k in keys(b().K), t in b().T
+        ) -
+        sum(
+            sum(
+                h[j,k,t] * duals.ν[j]
+                for j in keys(≳)
+            )
+            for k in keys(b().K), t in b().T
         )
     )
 
@@ -262,22 +268,21 @@ function buildSub(n::node,duals::dval)
     # ================================
     #    BOUND GENERATOR
     # ================================
-    for j in keys(≲)
+    for j in keys(≲), k in keys(b().K), t in b().T
         η = @variable(sp, [B[j].B], Bin)
 
-        @constraint(sp, g[j] >= 1 - sum(1 - η[b] for b in B[j].B)
-        @constraint(sp, [b = B[j].B, k = keys(b().K), t = b().T],
-            (imax()[b.i] - b.v + 1) * η[b] >= y[i,k,t] - b.v + 1
+        @constraint(sp, g[j,k,t] >= 1 - sum(1 - η[e] for e in B[j].B)
+        )
+        @constraint(sp, [e = B[j].B],
+            (qmax()[e.i] - e.v + 1) * η[e] >= y[e.i,k,t] - e.v + 1
         )
     end
 
-    for j in keys(≳)
+    for j in keys(≳), k in keys(b().K), t in b().T
         η = @variable(sp, [B[j].B], Bin)
 
-        @constraint(sp, [b = B[j].B], h[j] <= η[b])
-        @constraint(sp, [b = B[j].B, k = keys(b().K), t = b().T],
-            b.v * η[b] <= y[i,k,t]
-        )
+        @constraint(sp, [e = B[j].B], h[j,k,t] <= η[e])
+        @constraint(sp, [e = B[j].B], e.v * η[e] <= y[e.i,k,t])
     end
 
 

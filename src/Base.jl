@@ -5,6 +5,22 @@
 const template_data = Ref{Any}(nothing)
 b() = template_data[] #buat manggil dt default
 
+const max_i = Ref{Any}(nothing)
+qmax() = max_i[] #buat manggil nilai max di i
+
+function imax(res=b())
+    val = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(res.V))
+
+    for i in keys(res.V)
+        candidate = [length(res.K[k].cover) * res.K[k].freq for k in keys(res.K)
+        if i in res.K[k].cover]
+
+        val[i] = findmax(candidate)[1]
+    end
+
+    return max_i[] = val
+end
+
 function extract!(path::String) #extract from excel
     xf = XLSX.readxlsx(path) #READ WORKSHEET
     data = Dict{Symbol,DataFrame}() #DATAFRAME DICT
