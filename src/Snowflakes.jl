@@ -49,10 +49,8 @@ export updateStab!
 export checkStab
 export colGen
 
-export qvec
-export dominance
 export Q
-export positiveComp
+export f
 export separate
 export integerCheck
 export createBranch

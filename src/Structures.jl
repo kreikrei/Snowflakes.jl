@@ -80,7 +80,7 @@ end
 
 struct bound
     type::String
-    B::Union{β,Vector{β}}
+    B::Vector{β}
     κ::Int64
 end
 

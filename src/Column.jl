@@ -2,6 +2,45 @@
 #    COLUMN GENERATION MECHANISMS
 # =========================================================================
 
+function Q(key,R::Dict)
+    if isa(key,β)
+        q = Vector{NamedTuple}()
+        for r in keys(R), k in keys(b().K), t in b().T
+            if R[r].y[key.i,k,t] >= key.v
+                push!(q,(r=r,k=k,t=t))
+            end
+        end
+        return q
+    elseif isa(key,Vector{β})
+        q = Vector{Vector{NamedTuple}}()
+        for b in key
+            push!(q,Q(b,R))
+        end
+        for x in 1:length(q)-1
+            intersect!(q[x+1],q[x])
+        end
+        return q[end]
+    end
+
+    return q
+end
+
+function f(B,R,θ)
+    if isempty(B)
+        return sum(θ[r,k,t] - floor(θ[r,k,t])
+            for r in keys(R), k in keys(b().K), t in b().T
+        )
+    else
+        if !isempty(Q(B,R))
+            return sum(θ[q.r,q.k,q.t] - floor(θ[q.r,q.k,q.t])
+                for q in Q(B,R)
+            )
+        else
+            return 0
+        end
+    end
+end
+
 function master(n::node)
     mp = buildMaster(n)
     optimize!(mp)
@@ -122,6 +161,9 @@ function buildSub(n::node,duals::dval)
     R = Dict(1:length(n.columns) .=> n.columns)
     B = Dict(1:length(n.bounds) .=> n.bounds)
 
+    ≲ = filter(b -> last(b).type == "≲",B)
+    ≳ = filter(b -> last(b).type == "≳",B)
+
     # ================================
     #    MODEL CONSTRUCTION
     # ================================
@@ -137,7 +179,8 @@ function buildSub(n::node,duals::dval)
         x[collect(keys(b().V)), collect(keys(b().V)), collect(keys(b().K)), b().T] >= 0, Int
     )
 
-    @variable(sp, o[keys(B)], Bin)
+    @variable(sp, g[keys(≲)], Bin)
+    @variable(sp, h[keys(≳)], Bin)
 
     @objective(sp, Min,
         sum(
@@ -168,6 +211,14 @@ function buildSub(n::node,duals::dval)
         sum(
             duals.δ[k,t]
             for k in keys(b().K), t in b().T
+        ) +
+        sum(
+            g[j] * duals.μ[j]
+            for j in keys(≲)
+        ) -
+        sum(
+            h[j] * duals.ν[j]
+            for j in keys(≳)
         )
     )
 
@@ -211,6 +262,24 @@ function buildSub(n::node,duals::dval)
     # ================================
     #    BOUND GENERATOR
     # ================================
+    for j in keys(≲)
+        η = @variable(sp, [B[j].B], Bin)
+
+        @constraint(sp, g[j] >= 1 - sum(1 - η[b] for b in B[j].B)
+        @constraint(sp, [b = B[j].B, k = keys(b().K), t = b().T],
+            (imax()[b.i] - b.v + 1) * η[b] >= y[i,k,t] - b.v + 1
+        )
+    end
+
+    for j in keys(≳)
+        η = @variable(sp, [B[j].B], Bin)
+
+        @constraint(sp, [b = B[j].B], h[j] <= η[b])
+        @constraint(sp, [b = B[j].B, k = keys(b().K), t = b().T],
+            b.v * η[b] <= y[i,k,t]
+        )
+    end
+
 
     return sp
 end
