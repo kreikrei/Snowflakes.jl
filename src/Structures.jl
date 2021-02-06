@@ -73,11 +73,15 @@ struct dval
     ν::JuMP.Containers.DenseAxisArray
 end
 
+struct β
+    i::Int64
+    v::Int64
+end
+
 struct bound
     type::String
-    idx::NamedTuple #informasi tentang (k,t)
-    vector::col
-    value::Int64
+    B::Union{β,Vector{β}}
+    κ::Int64
 end
 
 struct stabilizer
