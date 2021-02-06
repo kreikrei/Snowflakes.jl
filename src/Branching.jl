@@ -2,49 +2,6 @@
 #    BRANCHING MECHANISMS
 # =========================================================================
 
-function qvec(r::Int64,k::Int64,t::Int64;R::Dict{Int64,col})
-    return col(
-        R[r].u[:,k,t],
-        R[r].v[:,k,t],
-        R[r].l[:,:,k,t],
-        R[r].y[:,k,t],
-        R[r].z[:,k,t],
-        R[r].x[:,:,k,t]
-    )
-end
-
-function dominance(r::col,p::col)
-    y = r.y.data .- p.y.data
-    z = r.z.data .- p.z.data
-    x = r.x.data .- p.x.data
-
-    yB = isempty(filter(p -> p < 0, y))
-    zB = isempty(filter(p -> p < 0, z))
-    xB = isempty(filter(p -> p < 0, x))
-
-    if yB && zB && xB
-        return true
-    else
-        return false
-    end
-end
-
-function Q(vector::col,idx::NamedTuple;R::Dict{Int64,col})
-    set = Vector{Int64}()
-
-    for r in keys(R)
-        if dominance(qvec(r,idx.k,idx.t;R=R),vector)
-            push!(set,r)
-        end
-    end
-
-    return set
-end
-
-function positiveComp(q::col)
-    return sum(q.y) + sum(q.z) + sum(q.x)
-end
-
 function separate(n::node)
     collection = DataFrame(
         q = col[], idx = NamedTuple[], val = Float64[],

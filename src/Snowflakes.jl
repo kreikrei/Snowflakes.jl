@@ -37,22 +37,18 @@ export extract!
 export stats
 export initStab
 export root
-export origin
 
+export q
+export dominance
+export f
 export master
-export buildMaster
 export getDuals
 export sub
-export buildSub
 export getCols
 export updateStab!
 export checkStab
 export colGen
 
-export qvec
-export dominance
-export Q
-export positiveComp
 export separate
 export integerCheck
 export createBranch

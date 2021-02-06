@@ -43,17 +43,6 @@ struct dt
     d::JuMP.Containers.DenseAxisArray
 end
 
-struct status
-    number_of_vertices::Int64
-    number_of_vehicles::Int64
-    unique_types_vtx::Array{String,1}
-    unique_types_veh::Array{String,1}
-    type_breakdown_vtx::Dict{String,Array{Int64,1}}
-    type_breakdown_veh::Dict{String,Array{Int64,1}}
-    cover_list::Array{Int64,1}
-    average_demand::Array{Float64,1}
-end
-
 struct col
     #quantity
     u::JuMP.Containers.DenseAxisArray
@@ -73,11 +62,15 @@ struct dval
     ν::JuMP.Containers.DenseAxisArray
 end
 
-struct bound
-    type::String
-    idx::NamedTuple #informasi tentang (k,t)
-    vector::col
+struct β
+    idx::Int64
     value::Int64
+end
+
+struct bound
+    B::Union{β,Vector{β}}
+    type::String
+    κ::Int64
 end
 
 struct stabilizer
@@ -94,7 +87,7 @@ struct node
 
     #Dynamic SET
     bounds::Vector{bound}
-    columns::Vector{col}
+    columns::Vector{Pair{Tuple,col}}
 
     #SUPPORT
     stab::stabilizer

@@ -5,6 +5,22 @@
 const template_data = Ref{Any}(nothing)
 b() = template_data[] #buat manggil dt default
 
+const max_i = Ref{Any}(nothing)
+qmax() = max_i[] #buat manggil nilai max di i
+
+function imax(res=b())
+    val = JuMP.Containers.DenseAxisArray{Float64(undef,keys(res.V))}
+
+    for i in keys(res.V)
+        candidate = [length(res.K[k].cover) * res.K[k].freq for k in keys(res.K[k])
+        if i in res.K[k].cover]
+
+        val[i] = max(candidate)
+    end
+
+    return max_i[] = val
+end
+
 function extract!(path::String) #extract from excel
     xf = XLSX.readxlsx(path) #READ WORKSHEET
     data = Dict{Symbol,DataFrame}() #DATAFRAME DICT
@@ -60,41 +76,6 @@ function extract!(path::String) #extract from excel
     return template_data[] = res
 end
 
-function stats(res = b())
-    uniqueVtx = unique([res.V[i].type for i in keys(res.V)])
-    uniqueVeh = unique([res.K[k].type for k in keys(res.K)])
-
-    vtxType = Dict{String,Vector{Int64}}()
-    vehType = Dict{String,Vector{Int64}}()
-    for t in uniqueVtx
-        vtxType[t] = sort(collect(keys(filter(p -> last(p).type == t , res.V))))
-    end
-    for t in uniqueVeh
-        vehType[t] = sort(collect(keys(filter(p -> last(p).type == t , res.K))))
-    end
-
-    cover = Vector{Int64}()
-    for k in keys(res.K)
-        for c in res.K[k].cover
-            push!(cover,c)
-        end
-        unique!(cover)
-    end
-
-    dems = [mean(res.d[:,t]) for t in res.T]
-
-    return status(
-        length(res.V),
-        length(res.K),
-        uniqueVtx,
-        uniqueVeh,
-        vtxType,
-        vehType,
-        cover,
-        dems
-    )
-end
-
 function initStab(res = b())
     slackCoeff = sl_C()
     surpCoeff = su_C()
@@ -108,44 +89,10 @@ function root(res = b())
     id = uuid1()
     root = node(
         id, id,
-        Vector{bound}(),Vector{col}(),
+        Vector{bound}(),Vector{Pair{Tuple,col}}(),
         initStab(),
         ["UNVISITED"]
     )
 
     return root
-end
-
-function origin(n::node)
-    z = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(b().V),keys(b().K),b().T)
-    y = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(b().V),keys(b().K),b().T)
-    u = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(b().V),keys(b().K),b().T)
-    v = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(b().V),keys(b().K),b().T)
-    x = JuMP.Containers.DenseAxisArray{Float64}(
-        undef,collect(keys(b().V)),collect(keys(b().V)),collect(keys(b().K)),b().T
-    )
-    l = JuMP.Containers.DenseAxisArray{Float64}(
-        undef,collect(keys(b().V)),collect(keys(b().V)),collect(keys(b().K)),b().T
-    )
-
-    R = Dict(1:length(n.columns) .=> n.columns)
-    mp = master(n)
-    θ = mp.obj_dict[:θ]
-
-    for i in keys(b().V), k in keys(b().K), t in b().T
-        z[i,k,t] = value(sum(R[r].z[i,k,t] * θ[r,k,t] for r in keys(R)))
-        y[i,k,t] = value(sum(R[r].y[i,k,t] * θ[r,k,t] for r in keys(R)))
-        u[i,k,t] = value(sum(R[r].u[i,k,t] * θ[r,k,t] for r in keys(R)))
-        v[i,k,t] = value(sum(R[r].v[i,k,t] * θ[r,k,t] for r in keys(R)))
-
-        for j in keys(b().V)
-            x[i,j,k,t] = value(sum(R[r].x[i,j,k,t] * θ[r,k,t] for r in keys(R)))
-            l[i,j,k,t] = value(sum(R[r].l[i,j,k,t] * θ[r,k,t] for r in keys(R)))
-        end
-    end
-
-    return col(
-        u,v,l,
-        y,z,x
-    )
 end
