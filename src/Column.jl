@@ -68,6 +68,9 @@ function buildMaster(n::node)
     R = Dict(1:length(n.columns) .=> n.columns)
     B = Dict(1:length(n.bounds) .=> n.bounds)
 
+    ≲ = filter(b -> last(b).t == "≲",B)
+    ≳ = filter(b -> last(b).t == "≳",B)
+
     # ================================
     #    MODEL CONSTRUCTION
     # ================================
@@ -133,9 +136,6 @@ function buildMaster(n::node)
     # ================================
     #    BOUND GENERATOR
     # ================================
-    ≲ = filter(b -> last(b).type == "≲",B)
-    ≳ = filter(b -> last(b).type == "≳",B)
-
     @constraint(mp, μ[b = keys(≲)],
         sum(θ[q.r,q.k,q.t] for q in Q(B[b].B,R)) <= B[b].κ
     )
@@ -172,8 +172,8 @@ function buildSub(n::node,duals::dval)
     R = Dict(1:length(n.columns) .=> n.columns)
     B = Dict(1:length(n.bounds) .=> n.bounds)
 
-    ≲ = filter(b -> last(b).type == "≲",B)
-    ≳ = filter(b -> last(b).type == "≳",B)
+    ≲ = filter(b -> last(b).t == "≲",B)
+    ≳ = filter(b -> last(b).t == "≳",B)
 
     # ================================
     #    MODEL CONSTRUCTION
@@ -282,10 +282,12 @@ function buildSub(n::node,duals::dval)
     for j in keys(≲), k in keys(b().K), t in b().T
         η = @variable(sp, [B[j].B], Bin)
 
-        @constraint(sp, g[j,k,t] >= 1 - sum(1 - η[e] for e in B[j].B)
-        )
-        @constraint(sp, [e = B[j].B],
+        @constraint(sp, g[j,k,t] >= 1 - sum(1 - η[e] for e in B[j].B))
+        @constraint(sp, [e = filter(o -> o.t == "≳",B[j].B)],
             (qmax()[e.i] - e.v + 1) * η[e] >= y[e.i,k,t] - e.v + 1
+        )
+        @constraint(sp, [e = filter(o -> o.t == "<",B[j].B)],
+            e.v * η[e] >= e.v - y[e.i,k,t]
         )
     end
 
@@ -293,7 +295,12 @@ function buildSub(n::node,duals::dval)
         η = @variable(sp, [B[j].B], Bin)
 
         @constraint(sp, [e = B[j].B], h[j,k,t] <= η[e])
-        @constraint(sp, [e = B[j].B], e.v * η[e] <= y[e.i,k,t])
+        @constraint(sp, [e = filter(o -> o.t == "≳",B[j].B)],
+            e.v * η[e] <= y[e.i,k,t]
+        )
+        @constraint(sp,  [e = filter(o -> o.t == "<",B[j].B)],
+            (qmax()[e.i] - e.v + 1) * η[e] <= (qmax()[e.i] - y[e.i,k,t])
+        )
     end
 
 
