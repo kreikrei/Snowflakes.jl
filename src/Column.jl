@@ -5,24 +5,35 @@
 function Q(key,R::Dict)
     if isa(key,β)
         q = Vector{NamedTuple}()
+
         for r in keys(R), k in keys(b().K), t in b().T
-            if R[r].y[key.i,k,t] >= key.v
-                push!(q,(r=r,k=k,t=t))
+            if key.t == "≳"
+                if R[r].y[key.i,k,t] >= key.v
+                    push!(q,(r=r,k=k,t=t))
+                end
+            elseif key.t == "<"
+                if R[r].y[key.i,k,t] < key.v
+                    push!(q,(r=r,k=k,t=t))
+                end
             end
         end
+
         return q
     elseif isa(key,Vector{β})
         q = Vector{Vector{NamedTuple}}()
+
         for b in key
             push!(q,Q(b,R))
         end
-        for x in 1:length(q)-1
-            intersect!(q[x+1],q[x])
-        end
-        return q[end]
-    end
 
-    return q
+        if !isempty(q)
+            #ngembaliin semua rkt
+            return reduce(intersect,q)
+        else
+            #ngembaliin vector kosong
+            return q
+        end
+    end
 end
 
 function f(B,R,θ)

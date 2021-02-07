@@ -75,11 +75,12 @@ end
 
 struct β
     i::Int64
+    t::String
     v::Int64
 end
 
 struct bound
-    type::String
+    t::String
     B::Vector{β}
     κ::Int64
 end
