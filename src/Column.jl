@@ -277,8 +277,8 @@ function buildSub(n::node,duals::dval)
         n = [i for i in keys(b().V) if !(i in b().K[k].cover)] #sets not in cover
 
         if !isempty(n)
-            @constraint(sp, z[n,k,t] == 0)
-            @constraint(sp, y[n,k,t] == 0)
+            @constraint(sp, [forbidden = n], z[forbidden,k,t] == 0)
+            @constraint(sp, [forbidden = n], y[forbidden,k,t] == 0)
         end
     end
 
