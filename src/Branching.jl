@@ -2,32 +2,39 @@
 #    BRANCHING MECHANISMS
 # =========================================================================
 
-function separate(n::node)
-    collection = DataFrame(
-        q = col[], idx = NamedTuple[], val = Float64[],
-        set = Vector{Int64}[],
-        positive=Float64[]
-    )
-
+function separate(n::Snowflakes.node)
+    #PROTOTYPE SEPARATION
     R = Dict(1:length(n.columns) .=> n.columns)
     θ = value.(master(n).obj_dict[:θ])
 
+    F = Vector{NamedTuple}()
     for r in keys(R), k in keys(b().K), t in b().T
-        tot = sum(θ[q,k,t] for q in Q(qvec(r,k,t;R=R),(k=k,t=t);R=R))
-        if !(abs(round(tot) - tot) < 1e-15) #isinteger(tot)
-            append!(collection,
-                DataFrame(
-                    q = qvec(r,k,t;R=R),
-                    idx = (k=k,t=t),
-                    val = tot,
-                    set = [Q(qvec(r,k,t;R=R),(k=k,t=t);R=R)],
-                    positive = positiveComp(qvec(r,k,t;R=R))
-                )
-            )
+        if θ[r,k,t] - floor(θ[r,k,t]) > 0
+            push!(F,(r=r,k=k,t=t))
         end
     end
 
-    return collection
+    qF = DataFrame(q = Symbol[], i = Int64[], v = Int64[])
+    for f in F, q in [:u,:v,:y,:z], i in keys(b().V)
+        append!(qF, DataFrame(q = q,i = i,v = getproperty(R[f.r],q)[i,f.k,f.t]))
+    end
+
+    return qF
+end
+
+function vtest(q::Symbol,i::Int64,qF::DataFrame)
+    test_v = Vector{Int64}()
+
+    distinct = filter(p -> p.i == i && p.q == q,qF).v
+
+    for i in 1:length(distinct)-1
+        comp = ceil(distinct[i] + distinct[i+1]) / 2
+        if comp > 0
+            push!(test_v, comp)
+        end
+    end
+
+    return unique!(test_v)
 end
 
 function integerCheck(n::node)
@@ -35,7 +42,7 @@ function integerCheck(n::node)
     sol = origin(n)
 
     for i in keys(b().V), k in keys(b().K), t in b().T
-        if !isinteger(sol.z[i,k,t]) || !isinteger(sol.y[i,k,t])
+        if !isinteger(sol.y[i,k,t])
             integer = false
             break
         end
@@ -44,32 +51,32 @@ function integerCheck(n::node)
     return integer
 end
 
-function createBranch(n::node,seeds::DataFrame)
+function createBranch(n::node)
     branches = Vector{node}()
+    seeds = separate(n)
 
-    for s in eachrow(seeds)
-        for br in ["upper","lower"]
-            push!(branches,
-                node(
-                    n.self, #parent
-                    uuid1(), #self
 
-                    vcat(n.bounds, #bounds
-                        bound(
-                            br, s.idx, s.q,
-                            if br == "upper"
-                                floor(s.val)
-                            else
-                                ceil(s.val)
-                            end
-                        )
-                    ),
-                    n.columns, #columns
-                    initStab(), #stabilizer
-                    ["UNVISITED"]
-                )
+    for br in ["≳","≲"]
+        push!(branches,
+            node(
+                n.self, #parent
+                uuid1(), #self
+
+                vcat(n.bounds, #bounds
+                    bound(
+                        br, first(seeds),
+                        if br == "≲"
+                            floor(last(seeds))
+                        else
+                            ceil(last(seeds))
+                        end
+                    )
+                ),
+                n.columns, #columns
+                initStab(), #stabilizer
+                ["UNVISITED"]
             )
-        end
+        )
     end
 
     return branches

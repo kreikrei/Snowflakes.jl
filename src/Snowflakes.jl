@@ -33,12 +33,16 @@ export set_silence!
 export silent
 
 export b
+export qmax
+export imax
 export extract!
 export stats
 export initStab
 export root
 export origin
 
+export Q
+export f
 export master
 export buildMaster
 export getDuals
@@ -49,9 +53,8 @@ export updateStab!
 export checkStab
 export colGen
 
-export Q
-export f
 export separate
+export vtest
 export integerCheck
 export createBranch
 

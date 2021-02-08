@@ -74,14 +74,15 @@ struct dval
 end
 
 struct β
+    q::Symbol
     i::Int64
     t::String
     v::Int64
 end
 
 struct bound
-    t::String
     B::Vector{β}
+    t::String
     κ::Int64
 end
 

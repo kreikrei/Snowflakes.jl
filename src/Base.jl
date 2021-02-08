@@ -9,13 +9,27 @@ const max_i = Ref{Any}(nothing)
 qmax() = max_i[] #buat manggil nilai max di i
 
 function imax(res=b())
-    val = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(res.V))
+    val = col(
+        JuMP.Containers.DenseAxisArray{Float64}(undef, keys(res.V)), #u
+        JuMP.Containers.DenseAxisArray{Float64}(undef, keys(res.V)), #v
+        JuMP.Containers.DenseAxisArray{Float64}(undef, keys(res.V), keys(res.V)), #empty l
+        JuMP.Containers.DenseAxisArray{Float64}(undef, keys(res.V)), #y
+        JuMP.Containers.DenseAxisArray{Float64}(undef, keys(res.V)), #z
+        JuMP.Containers.DenseAxisArray{Float64}(undef, keys(res.V), keys(res.V)) #empty x
+    )
 
     for i in keys(res.V)
-        candidate = [length(res.K[k].cover) * res.K[k].freq for k in keys(res.K)
+        u = [length(res.K[k].cover) * res.K[k].freq * res.K[k].Q for k in keys(res.K)
         if i in res.K[k].cover]
+        v = [res.K[k].freq * res.K[k].Q for k in keys(res.K) if i in res.K[k].cover]
+        y = [length(res.K[k].cover) * res.K[k].freq for k in keys(res.K)
+        if i in res.K[k].cover]
+        z = [res.K[k].freq for k in keys(res.K) if i in res.K[k].cover]
 
-        val[i] = findmax(candidate)[1]
+        val.u[i] = findmax(u)[1]
+        val.v[i] = findmax(v)[1]
+        val.y[i] = findmax(y)[1]
+        val.z[i] = findmax(z)[1]
     end
 
     return max_i[] = val

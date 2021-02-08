@@ -8,11 +8,11 @@ function Q(key,R::Dict)
 
         for r in keys(R), k in keys(b().K), t in b().T
             if key.t == "≳"
-                if R[r].y[key.i,k,t] >= key.v
+                if getproperty(R[r],key.q)[key.i,k,t] >= key.v
                     push!(q,(r=r,k=k,t=t))
                 end
             elseif key.t == "<"
-                if R[r].y[key.i,k,t] < key.v
+                if getproperty(R[r],key.q)[key.i,k,t] < key.v
                     push!(q,(r=r,k=k,t=t))
                 end
             end
@@ -178,16 +178,21 @@ function buildSub(n::node,duals::dval)
     # ================================
     #    MODEL CONSTRUCTION
     # ================================
-    @variable(sp, u[keys(b().V), keys(b().K), b().T] >= 0, Int)
-    @variable(sp, v[keys(b().V), keys(b().K), b().T] >= 0, Int)
-    @variable(sp,
-        l[collect(keys(b().V)), collect(keys(b().V)), collect(keys(b().K)), b().T] >= 0, Int
-    )
-
-    @variable(sp, y[keys(b().V), keys(b().K), b().T] >= 0, Int)
-    @variable(sp, 0 <= z[i = keys(b().V), k = keys(b().K), t = b().T] <= b().K[k].freq, Int)
-    @variable(sp,
-        x[collect(keys(b().V)), collect(keys(b().V)), collect(keys(b().K)), b().T] >= 0, Int
+    q = col(
+        @variable(sp, u[keys(b().V), keys(b().K), b().T] >= 0, Int),
+        @variable(sp, v[keys(b().V), keys(b().K), b().T] >= 0, Int),
+        @variable(sp,
+            l[collect(keys(b().V)), collect(keys(b().V)), collect(keys(b().K)), b().T] >=
+            0, Int
+        ),
+        @variable(sp, y[keys(b().V), keys(b().K), b().T] >= 0, Int),
+        @variable(sp, 0 <= z[i = keys(b().V), k = keys(b().K), t = b().T] <=
+            b().K[k].freq, Int
+        ),
+        @variable(sp,
+            x[collect(keys(b().V)), collect(keys(b().V)), collect(keys(b().K)), b().T] >=
+            0, Int
+        )
     )
 
     @variable(sp, g[keys(≲), keys(b().K), b().T], Bin)
@@ -268,41 +273,49 @@ function buildSub(n::node,duals::dval)
         l[i,j,k,t] <= b().K[k].Q * x[i,j,k,t] #l-x corr
     )
 
-    @constraint(sp, [k = keys(b().K),
-        n = [i for i in keys(b().V) if !(i in b().K[k].cover)], t = b().T], z[n,k,t] == 0
-    )
+    for k in keys(b().K), t in b().T
+        n = [i for i in keys(b().V) if !(i in b().K[k].cover)] #sets not in cover
 
-    @constraint(sp, [k = keys(b().K),
-        n = [i for i in keys(b().V) if !(i in b().K[k].cover)], t = b().T], y[n,k,t] == 0
-    )
+        if !isempty(n)
+            @constraint(sp, z[n,k,t] == 0)
+            @constraint(sp, y[n,k,t] == 0)
+        end
+    end
 
     # ================================
     #    BOUND GENERATOR
     # ================================
+    imax()
+
     for j in keys(≲), k in keys(b().K), t in b().T
         η = @variable(sp, [B[j].B], Bin)
 
-        @constraint(sp, g[j,k,t] >= 1 - sum(1 - η[e] for e in B[j].B))
-        @constraint(sp, [e = filter(o -> o.t == "≳",B[j].B)],
-            (qmax()[e.i] - e.v + 1) * η[e] >= y[e.i,k,t] - e.v + 1
-        )
-        @constraint(sp, [e = filter(o -> o.t == "<",B[j].B)],
-            e.v * η[e] >= e.v - y[e.i,k,t]
-        )
+        @constraint(sp, -g[j,k,t] >= 1 - sum(1 - η[e] for e in B[j].B))
+        for e in B[j].B
+            if e.t == "≳"
+                @constraint(sp, (getproperty(qmax(),e.q)[e.i] - e.v + 1) * η[e] >=
+                    getproperty(q,e.q)[e.i,k,t] - e.v + 1
+                )
+            elseif e.t == "<"
+                @constraint(sp, e.v * η[e] >= e.v - getproperty(q,e.q)[e.i,k,t])
+            end
+        end
     end
 
     for j in keys(≳), k in keys(b().K), t in b().T
         η = @variable(sp, [B[j].B], Bin)
 
         @constraint(sp, [e = B[j].B], h[j,k,t] <= η[e])
-        @constraint(sp, [e = filter(o -> o.t == "≳",B[j].B)],
-            e.v * η[e] <= y[e.i,k,t]
-        )
-        @constraint(sp,  [e = filter(o -> o.t == "<",B[j].B)],
-            (qmax()[e.i] - e.v + 1) * η[e] <= (qmax()[e.i] - y[e.i,k,t])
-        )
+        for e in B[j].B
+            if e.t == "≳"
+                @constraint(sp, e.v * η[e] <= getproperty(q,e.q)[e.i,k,t])
+            elseif e.t == "<"
+                @constraint(sp,(getproperty(qmax(),e.q)[e.i] - e.v + 1) * η[e] <=
+                    (getproperty(qmax(),e.q)[e.i] - getproperty(q,e.q)[e.i,k,t])
+                )
+            end
+        end
     end
-
 
     return sp
 end
@@ -337,7 +350,9 @@ function updateStab!(stab::stabilizer,param::Float64)
 end
 
 function checkStab(mp::Model)
-    s = sum(value.(mp.obj_dict[:slack])) + sum(value.(mp.obj_dict[:surp]))
+    s = (
+        sum(value.(mp.obj_dict[:slack])) + sum(value.(mp.obj_dict[:surp]))
+    )
 
     return s
 end
@@ -363,8 +378,8 @@ function colGen(n::node;maxCG::Float64,track::Bool)
                     println("price: $(objective_value(sp))")
                 end
 
-                if isapprox(objective_value(sp),0,atol = 1e-8) || objective_value(sp) > 0
-                    if isapprox(checkStab(mp),0,atol = 1e-8)
+                if isapprox(objective_value(sp),0,atol = 1e-7) || objective_value(sp) > 0
+                    if isapprox(checkStab(mp),0,atol = 1e-7)
                         terminate = true #action
                         push!(n.status,"EVALUATED") #report
                         if track
