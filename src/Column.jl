@@ -378,8 +378,8 @@ function colGen(n::node;maxCG::Float64,track::Bool)
                     println("price: $(objective_value(sp))")
                 end
 
-                if isapprox(objective_value(sp),0,atol = 1e-7) || objective_value(sp) > 0
-                    if isapprox(checkStab(mp),0,atol = 1e-7)
+                if isapprox(objective_value(sp),0,atol = 1e-6) || objective_value(sp) > 0
+                    if isapprox(checkStab(mp),0,atol = 1e-6)
                         terminate = true #action
                         push!(n.status,"EVALUATED") #report
                         if track

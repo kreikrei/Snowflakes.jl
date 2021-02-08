@@ -14,24 +14,30 @@ function separate(n::Snowflakes.node)
         end
     end
 
-    qF = DataFrame(q = Symbol[], i = Int64[], v = Int64[])
-    for f in F, q in [:u,:v,:y,:z], i in keys(b().V)
-        append!(qF, DataFrame(q = q,i = i,v = getproperty(R[f.r],q)[i,f.k,f.t]))
+    qF = DataFrame(q = Tuple[], i = Int64[], v = Tuple[])
+    for f in F, q in [(:u,:y),(:v,:z)], i in keys(b().V)
+        append!(qF, DataFrame(
+            q = q,
+            i = i,
+            v = (
+                getproperty(R[f.r],first(q))[i,f.k,f.t],
+                getproperty(R[f.r],last(q))[i,f.k,f.t]
+            )
+        ))
     end
 
     return qF
 end
 
-function vtest(q::Symbol,i::Int64,qF::DataFrame)
-    test_v = Vector{Int64}()
+function vtest(q::Tuple,i::Int64,qF::DataFrame)
+    test_v = Vector{Tuple}()
 
     distinct = filter(p -> p.i == i && p.q == q,qF).v
+    sort!(distinct)
 
     for i in 1:length(distinct)-1
-        comp = ceil(distinct[i] + distinct[i+1]) / 2
-        if comp > 0
-            push!(test_v, comp)
-        end
+        comp = ceil.((distinct[i] .+ distinct[i+1]) ./ 2)
+        push!(test_v, comp)
     end
 
     return unique!(test_v)
