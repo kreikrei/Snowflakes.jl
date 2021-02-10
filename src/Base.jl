@@ -22,12 +22,14 @@ function imax(res=b())
         u = [length(res.K[k].cover) * res.K[k].freq * res.K[k].Q for k in keys(res.K)
         if i in res.K[k].cover]
         v = [res.K[k].freq * res.K[k].Q for k in keys(res.K) if i in res.K[k].cover]
+
         y = [length(res.K[k].cover) * res.K[k].freq for k in keys(res.K)
         if i in res.K[k].cover]
         z = [res.K[k].freq for k in keys(res.K) if i in res.K[k].cover]
 
         val.u[i] = findmax(u)[1]
         val.v[i] = findmax(v)[1]
+        
         val.y[i] = findmax(y)[1]
         val.z[i] = findmax(z)[1]
     end
