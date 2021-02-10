@@ -15,7 +15,7 @@ function separate(n::Snowflakes.node)
     end
 
     qF = DataFrame(q = Symbol[], i = Int64[], v = Int64[])
-    for f in F, q in [:y,:z:v,:u,], i in keys(b().V)
+    for f in F, q in [:y,:z,:v,:u,], i in keys(b().V)
         append!(qF,
             DataFrame(
                 q = q,
