@@ -15,7 +15,7 @@ function separate(n::Snowflakes.node)
     end
 
     qF = DataFrame(q = Symbol[], i = Int64[], v = Int64[])
-    for f in F, q in [:u,:y,:v,:z], i in keys(b().V)
+    for f in F, q in [:u,:y,:v,:z,:p], i in keys(b().V)
         append!(qF,
             DataFrame(
                 q = q,
@@ -29,7 +29,7 @@ function separate(n::Snowflakes.node)
 end
 
 function vtest(q::Symbol,i::Int64,qF::DataFrame)
-    test_v = Vector{Tuple}()
+    test_v = Vector{Int64}()
 
     distinct = filter(p -> p.i == i && p.q == q,qF).v
     sort!(distinct)
