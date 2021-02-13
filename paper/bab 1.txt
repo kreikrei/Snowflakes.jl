@@ -1,0 +1,64 @@
+BAB 1 Pendahuluan
+    1. Latar Belakang
+	
+Manajemen rantai suplai merupakan sekumpulan pendekatan yang digunakan untuk mengintegrasikan pemasok, pemanufaktur, gudang, dan penyimpanan secara efisien sehingga barang diproduksi dan didistribusikan dengan jumlah yang tepat, ke tempat yang tepat, pada waktu yang tepat, dalam rangka meminimasi biaya sistem dan pada saat bersamaan memenuhi tingkat layanan yang diinginkan. Di dalamnya terdapat komponen logistik yang ada untuk memindahkan dan memosisikan persediaan untuk keuntungan yang diinginkan darir mencapai waktu, tempat, dan kepemilikan dengan biaya paling rendah (Simchi-Levi, 2010).
+Untuk mencapai keuntungan dalam logistik, terdapat fungsi-fungsi yang harus diintegrasikan secara penuh, yaitu: 1) Order Processing, 2) Inventory, 3) Transportation, 4) Warehousing, Materials Handling, dan Packaging, serta 5) Facility Network. Fungsi-fungsi ini saling terkait satu sama lain dan hal inilah yang menjadi tantangan dalam manajemen logistik (Bowersox, dkk., 2012).
+
+*Gambar Hubungan Manajemen Rantai Suplai => Logistik => Inventory & Transportation*
+
+Inventory atau persediaan merupakan penyangga antarproses untuk meratakan variasi dan menangani ketidakpastian – menyeimbangkan dua hal, yaitu memenuhi permintaan stokastik dengan cepat dan menyediakan suplai yang bekerja dengan baik dalam skala besar. Kerangka umum manajemen persediaan adalah melalui formulasi sistem persediaan, penentuan kebijakan optimal, pencatatan, dan implementasi pengisian ulang. Dengan kerangka umum ini tercipta model-model persediaan seperti EOQ dan Production Lot-Sizing beserta ekstensinya. Namun, model-model yang dikenal sejauh ini memiliki kelemahan dalam menangani aspek rute transportasi. Sering diasumsikan bahwa transportasi dilakukan oleh penyedia dan biayanya termasuk dalam biaya per unit, atau biaya transportasi tiap pengiriman diasumsikan tetap sehingga dapat dijadikan bagian dari biaya pemesanan (Andersson, 2010).
+Asumsi-asumsi biaya transportasi pada model persediaan membuat optimasinya tidak maksimal di mana pembayaran transportasi dibuktikan mampu memengaruhi minimasi biaya pemesanan persediaan (Carter dan Ferrin, 20xx). Objektif dari pengisian ulang sendiri merupakan minimasi total biaya logistik tahunan yang setengahnya datang dari transportasi (Swenseth and Godfrey, 20xx).  Hal ini menunjukkan bahwa setiap keputusan pengisian ulang harus mempertimbangkan biaya transportasi.
+Dalam ranah transportasi, permasalahan paling umum yang ditemui adalah routing yang terdiri dari menentukan pelanggan mana yang dilayani oleh tiap kendaraan dan menentukan urutan layanan ke tiap pelanggan untuk meminimasi total biaya dengan batasan-batasan yang ada. Dibandingkan dengan manajemen persediaan, penelitian permasalahan routing tidak banyak mendalami pemecahan masalah praktikal terkait dengan manajemen persediaan. Permasalahan antara studi terkait persediaan dengan transportasi serta kelemahan masing-masing digambarkan pada Gambar xx.
+
+*Gambar Hubungan Biaya Persediaan dan Biaya Transportasi*
+
+Meskipun secara tradisional manajemen fungsi persediaan dan transportasi dilakukan secara terpisah, secara teori, integrasi dari kedua fungsi ini adalah menguntungkan. Terdapat keuntungan ekonomi, fleksibilitas layanan, dan peningkatan ketahanan jaringan lewat koordinasi dari kedua fungsi ini. Salah satu contoh yang berkembang dan sudah mapan saat ini adalah penerapan Vendor Managed Inventory (VMI) di mana sebuah vendor bertanggung jawab untuk semua keputusan terkait persediaan produk di pelanggan. Metode VMI memastikan pengisian secara kontinu bagi pelanggan. Metode ini memindahkan tanggung jawab pengisian ulang ke tangan pemasok sehingga menjadi lebih fleksibel dan membuat risiko terbagi bersama di antara pelanggan dan pemasok.
+Pemecahan masalah yang aktif mengintegrasikan kedua fungsi ini disebut dengan Inventory Routing Problem (IRP). Secara lebih formal, didefinisikan bahwa IRP melibatkan sekumpulan pelanggan, di mana setiap pelanggan memiliki kebutuhan yang berbeda tiap periodenya. Setiap pelanggan juga diketahui memiliki kapasitas penyimpanan. Objektif dari permasalahan ini adalah minimasi biaya pengantaran total dan pada saat bersamaan memastikan tidak ada pelanggan yang kehabisan persediaan di seluruh periode. Inti dari permasalahan ini – seperti VMI – adalah menjaga pasokan persediaan yang cukup di lokasi pelanggan. Seperti yang dijelaskan sebelumnya, pada permasalahan ini pengambil keputusan mengetahui secara langsung tingkat persediaan di lokasi pelanggan.
+Untuk memberikan gambaran, akan diberikan ilustrasi (Bell, 19xx). Terdapat kumpulan titik pelanggan seperti pada Gambar xx. Dalam ilustrasi ini, sebuah produk harus didistribusikan dari sebuah pemasok ke empat pelanggan dengan kapasitas masing-masing menggunakan kendaraan dengan kapasitas yang tetap. Tidak ada batasan terkait ketersediaan produk di pemasok. Keputusan yang harus dibuat adalah, untuk tiap periode, pelanggan mana saja yang harus dilayani, berapabanyak yang diantarkan dan bagaimana rutenya.
+
+*Gambar Setting Permasalahan IRP Bell*
+
+Sebuah solusi natural dari permasalahan ini adalah seperti Gambar xx di mana biaya total transportasi adalah sebesar 420 tiap periodenya. Namun, terdapat konfigurasi pengantaran yang lebih baik seperti Gambar xx dengan biaya pada periode pertama sebesar 420 dan pada periode kedua sebesar 340 sehingga biaya rata-rata tiap periodenya 380. Pengetahuan akan stok dan tingkat penggunaan tiap pelanggan serta pengintegrasiannya dalam optimasi terbukti dapat menghasilkan rencana distribusi yang lebih hemat.
+Permasalahan IRP dapat diklasifikasi melalui beberapa kriteria, yaitu 1) waktu, 2) permintaan, 3) topologi jaringan, 4) routing, 5) inventory policy, 6) inventory decision, 7) komposisi armada, dan 8) ukuran armada. Penjelasan terkait setiap kriteria disajikan dalam Tabel xx .  Berdasarkan klasifikasi tersebut dilakukan pula survei terhadap literatur yang ada seperti disajikan pada Tabel xx (Andersson, 2010).
+
+*Tabel klasifikasi IRP*
+
+*Tabel literatur IRP*
+
+Permasalahan yang dibahas oleh sebagian besar literatur menyelesaikan tentang bagaimana produk tunggal didistribusikan dari fasilitas produksi tunggal ke kumpulan pelanggan dengan armada yang homogen dalam horizon perencanaan tertentu. Bahkan dalam situasi beberapa fasilitas produksi melayani kumpulan pelanggan, kumpulan pelanggan biasanya dipasangkan dengan fasilitas produksi tertentu sehingga permasalahan menjadi penyelesaian dari beberapa masalah IRP dengan fasilitas produksi tunggal. Diasumsikan secara implisit bahwa kapasitas produksi di tiap fasilitasnya adalah cukup untuk melayani pelanggan yang dipasangkan (Savelsebergh, 20xx).
+
+Dalam praktik, kasusnya tidak selalu demikian. Salah satu kasus adalah di mana pengambil keputusan menginginkan fleksibilitas dalam menentukan titik awal pelayanan pengantaran – di mana produk-produk dijemput. Hal ini berarti semua titik dapat melayani semua titik lainnya dan tidak ada penentuan jaringan layanan yang bersifat ditetapkan sebelumnya – atau biasa disebut a priori. Setiap titik merupakan titik yang sama hanya saja dengan pola aliran produk yang berbeda. Sebuah titik dapat memiliki outflow yang datang  dari permintaan eksternal untuk  dipenuhi titik tersebut atau memiliki inflow yang bisa datang dari produksi atau retur ke titik tersebut. Setiap titik merupakan titik yang sama memiliki kapasitas penyimpanan yang berbeda-beda. Karakteristik ini dirangkum dalam Tabel xx dan ke depannya kasus dengan karakteristik ini akan disebut sebagai Peer-to-Peer Inventory Routing Problem (P2P-IRP).
+
+*Tabel Karakteristik P2P-IRP*
+
+Permasalahan P2P-IRP memiliki beberapa kemiripan dengan beberapa permasalahan IRP yang ada seperti IRP dengan M-to-M Topology, IRP dengan Continuous Move, IRP dengan Pickup and Delivery. Pada Tabel xx, dijelaskan kesamaan dan perbedaan P2P-IRP dengan jenis-jenis permasalahan IRP lainnya.
+
+*Tabel kesamaan dan perbedaan P2P-IRP dengan IRP lain*
+
+Untuk memberikan gambaran, akan diberikan ilustrasi. Pada sistem distribusi dengan penentuan jaringan layanan yang bersifat a priori seperti Gambar xx, rute terbaik adalah seperti yang ada pada Gambar xx, sedangkan dengan sistem distribusi yang didasarkan pada karakteristik P2P-IRP seperti Gambar xx, solusi terbaik adalah seperti yang ada pada Gambar xx. Dari ilustrasi tersebut, dapat dilihat bahwa kasus P2P-IRP dapat menggunakan idle stock pada titik-titk tertentu untuk memastikan pemenuhan kebutuhan titik-titik disekitarnya, dibanding menggunakan stok dari fasilitas produksi atau titik yang predetermined.
+
+* Gambar jaringan apriori *
+
+* Gambar solusi jaringan apriori *
+
+* Gambar jaringan non apriori *
+
+* Gambar solusi jaringan non apriori *
+
+Kasus P2P-IRP memiliki peluang pengembangan yang besar karena dengan mempertimbangkan kemungkinan semua titik dapat melakukan pengantaran, sistem distribusi dapat menjadi lebih lokal dan lebih robust dalam menanggapi ketidakpastian permintaan. Ada beberapa hal yang harus dipastikan dalam kasus ini seperti kepemilikan internal armada transportasi dan kemampuan untuk menginkorporasikan struktur biaya armada transportasi pihak ketiga ke dalam model, namun ada banyak industri yang memiliki kemiripan dengan karakteristik ini seperti industri retail, logistik, dan consumer goods.
+Salah satu kasus yang akan dibahas dalam penelitian ini adalah sistem pengedaran uang Rupiah oleh Bank Indonesia sebagai otoritas utama pengedaran uang di Negara Kesatuan Republik Indonesia (UU No. xx Tahun 19xx). Kondisi aktual sistem distribusi Bank Indonesia saat ini adalah konfigurasi jaringan bereselon seperti diilustrasikan dalam Gambar xx. Departemen Pengelolaan sebagai badan yang bertanggung jawab langsung dalam sistem ini ingin menerapkan model P2P-IRP di mana setiap titik berpotensi melayani titik lainnya, sesuai dengan pola flow yang dimiliki setiap titik. Bila dibandingkan dengan kondisi aktual, penerapan model P2P-IRP berarti setiap titik dapat saling mengantar baik di dalam tingkat eselon yang sama atau pun antartingkat eselon yang berbeda – menyesuaikan dengan armada yang ada – seperti pada Gambar xx.
+Di dalam penelitian ini, akan dikembangkan model dan algoritma optimasi dengan pendekatan dekomposisi yang dapat menyelesaikan permasalahan Peer-to-Peer Inventory Routing Problem (P2P-IRP). Akan didemonstrasikan, bagaimana model serta algoritma yang dirancang dapat memberikan solusi mendekati optimal untuk permasalahan P2P-IRP sebagai sistem usulan distribusi uang Rupiah Bank Indonesia dengan ukuran permasalahan realistis.
+
+    2. Rumusan Masalah
+
+Sesuai dengan penjelasan sebelumnya, penelitian ini akan berfokus pada pengembangan model dan algoritma optimasi dengan pendekatan dekomposisi dilengkapi dengan implementasinya pada permasalahan sistem usulan pengedaran uang Rupiah Bank Indonesia.
+
+    3. Tujuan dan Manfaat
+
+Tujuan dari penelitian ini adalah untuk mendemonstrasikan bagaimana permasalahan P2P-IRP dapat diselesaikan mendekati optimal dalam waktu yang masuk akal dan diimplementasikan dalam perencanaan distribusi secara umum dan secara khusus.
+
+Manfaat yang diharapkan dari penelitian ini adalah bahwa hasil penelitian ini dapat menjadi sistem pendukung keputusan dalam pembuatan Rencana Distribusi Uang (RDU) Bank Indonesia serta menjadi kontribusi dalam pengembangan-pengembangan variasi IRP dalam ranah akademik.
+
+    4. Sistematika Penulisan
+
+Penulisan penelitian ini diatur sebagai berikut. Pada Bab 2 akan diberikan kerangka teori yang digunakan dalam merancang model serta algoritma optimasi untuk permasalahan P2P-IRP. Pada Bab 3 akan dijabarkan metodologi penelitian yang didasarkan pada asumsi metodologi Hard Operational Research (OR). Bab 4, Bab 5, dan Bab 6 mengikuti penjelasan pada Bab 3 di mana pada Bab 4 akan dijabarkan deskripsi permasalahan beserta formulasi matematis, pada Bab 5 akan dijabarkan proses perancangan algoritm serta skema algortima optimasi yang dihasilkan, dan pada Bab 6 akan dijabarkan implementasi serta analisis algoritma optimasi tersebut. Bab 7 akan memberikan beberapa kesimpulan beserta keterangan lebih lanjut tentang saran-saran dan arah pengembangan lanjutan dari penelitian ini.

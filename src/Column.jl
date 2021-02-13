@@ -20,35 +20,45 @@ function Q(key,R::Dict)
 
         return q
     elseif isa(key,Vector{β})
-        q = Vector{Vector{NamedTuple}}()
+        if !isempty(key)
+            q = Vector{Vector{NamedTuple}}()
 
-        for b in key
-            push!(q,Q(b,R))
-        end
+            for b in key
+                push!(q,Q(b,R))
+            end
 
-        if !isempty(q)
-            #ngembaliin semua rkt
-            return reduce(intersect,q)
+            if !isempty(q)
+                #ngembaliin semua rkt
+                return reduce(intersect,q)
+            else
+                #ngembaliin vector kosong
+                return q
+            end
         else
-            #ngembaliin vector kosong
+            q = Vector{NamedTuple}()
+
+            for r in keys(R), k in keys(b().K), t in b().T
+                push!(q,(r=r,k=k,t=t))
+            end
+
             return q
         end
     end
 end
 
 function f(B,R,θ)
-    if isempty(B)
-        return sum(θ[r,k,t] - floor(θ[r,k,t])
-            for r in keys(R), k in keys(b().K), t in b().T
-        )
+    if !isempty(Q(B,R))
+        return sum(θ[q.r,q.k,q.t] - floor(θ[q.r,q.k,q.t]) for q in Q(B,R))
     else
-        if !isempty(Q(B,R))
-            return sum(θ[q.r,q.k,q.t] - floor(θ[q.r,q.k,q.t])
-                for q in Q(B,R)
-            )
-        else
-            return 0
-        end
+        return 0
+    end
+end
+
+function tot(B,R,θ)
+    if !isempty(Q(B,R))
+        return sum(θ[q.r,q.k,q.t] for q in Q(B,R))
+    else
+        return 0
     end
 end
 
@@ -378,8 +388,8 @@ function colGen(n::node;maxCG::Float64,track::Bool)
                     println("price: $(objective_value(sp))")
                 end
 
-                if isapprox(objective_value(sp),0,atol = 1e-6) || objective_value(sp) > 0
-                    if isapprox(checkStab(mp),0,atol = 1e-6)
+                if isapprox(objective_value(sp),0,atol = 1e-8) || objective_value(sp) > 0
+                    if isapprox(checkStab(mp),0,atol = 1e-8)
                         terminate = true #action
                         push!(n.status,"EVALUATED") #report
                         if track

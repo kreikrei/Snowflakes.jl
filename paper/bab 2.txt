@@ -1,0 +1,5 @@
+BAB 2 Kerangka Teori
+    1. Pemodelan Sistem
+    2. Optimasi Kombinatorial
+    3. Dekomposisi Dantzig-Wolfe
+    4. Pemrograman Bilangan Bulat

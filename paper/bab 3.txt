@@ -1,0 +1,3 @@
+BAB 3 Metodologi
+    1. Asumsi Hard OR
+    2. Skema Metodologi

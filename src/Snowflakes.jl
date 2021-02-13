@@ -43,6 +43,7 @@ export origin
 
 export Q
 export f
+export tot
 export master
 export buildMaster
 export getDuals

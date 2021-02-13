@@ -12,18 +12,18 @@ function separate(n::Snowflakes.node)
         if θ[r,k,t] - floor(θ[r,k,t]) > 0
             push!(F,(r=r,k=k,t=t))
         end
-    end
+    end #semua q yang nilai θ-nya masih fractional
 
-    qF = DataFrame(q = Symbol[], i = Int64[], v = Int64[])
+    qF = DataFrame(q = Symbol[], i = Int64[], val = Int64[])
     for f in F, q in [:y,:z,:v,:u,], i in keys(b().V)
         append!(qF,
             DataFrame(
                 q = q,
                 i = i,
-                v = getproperty(R[f.r],q)[i,f.k,f.t]
+                val = getproperty(R[f.r],q)[i,f.k,f.t]
             )
         )
-    end
+    end #collect existing values of the variable (q,i)
 
     return qF
 end
@@ -31,7 +31,7 @@ end
 function vtest(q::Symbol,i::Int64,qF::DataFrame)
     test_v = Vector{Int64}()
 
-    distinct = filter(p -> p.i == i && p.q == q,qF).v
+    distinct = filter(p -> p.i == i && p.q == q,qF).val
     sort!(distinct)
 
     for i in 1:length(distinct)-1
@@ -39,7 +39,13 @@ function vtest(q::Symbol,i::Int64,qF::DataFrame)
         push!(test_v, comp)
     end
 
-    return unique!(test_v)
+    res = Vector{β}()
+
+    for v in unique!(test_v)
+        push!(res,β(q,i,"≳",v))
+    end
+
+    return res
 end
 
 function integerCheck(n::node)
