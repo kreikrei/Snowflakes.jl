@@ -77,7 +77,7 @@ struct β
     q::Symbol
     i::Int64
     t::String
-    v::Int64
+    v::Union{nothing,Int64}
 end
 
 struct bound
