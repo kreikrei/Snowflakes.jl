@@ -67,16 +67,16 @@ end
 
 IRP-PD memiliki peluang pengembangan yang besar dengan lebih mengedepankan fleksibilitas sehingga berpeluan memiliki ketangguhan dalam menanggapi ketidakpastian. Di dalam penelitian ini, akan dikembangkan model dan algoritma optimasi dengan pendekatan dekomposisi yang dapat menyelesaikan permasalahan IRP-PD. Akan didemonstrasikan, bagaimana model serta algoritma yang dirancang dapat memberikan solusi mendekati optimal untuk permasalahan IRP-PD sebagai sistem usulan distribusi uang Rupiah Bank Indonesia dengan ukuran permasalahan realistis.
 
-    2. Rumusan Masalah
+2. Rumusan Masalah
 
 Penelitian ini akan berfokus pada pengembangan model dan algoritma optimasi dengan pendekatan dekomposisi dilengkapi dengan implementasinya pada permasalahan sistem usulan pengedaran uang Rupiah Bank Indonesia.
 
-    3. Tujuan dan Manfaat
+3. Tujuan dan Manfaat
 
 Tujuan dari penelitian ini adalah untuk mendemonstrasikan bagaimana permasalahan IRP-PD dapat diselesaikan mendekati optimal dalam waktu yang masuk akal dan diimplementasikan dalam perencanaan distribusi secara umum.
 
 Manfaat yang diharapkan dari penelitian ini adalah bahwa hasil penelitian ini dapat menjadi sistem pendukung keputusan dalam pembuatan Rencana Distribusi Uang (RDU) Bank Indonesia serta menjadi kontribusi dalam pengembangan-pengembangan variasi IRP dalam ranah akademik.
 
-    4. Sistematika Penulisan
+4. Sistematika Penulisan
 
 Penulisan penelitian ini diatur sebagai berikut. Pada Bab 2 akan diberikan kerangka teori yang digunakan dalam merancang model serta algoritma optimasi untuk permasalahan IRP-PD. Pada Bab 3 akan dijabarkan metodologi penelitian yang didasarkan pada asumsi metodologi Hard Operational Research (OR). Bab 4, Bab 5, dan Bab 6 mengikuti penjelasan pada Bab 3 di mana pada Bab 4 akan dijabarkan deskripsi permasalahan beserta formulasi matematisnya, pada Bab 5 akan dijabarkan proses perancangan algoritma serta skema algortima optimasi yang dihasilkan, dan pada Bab 6 akan dijabarkan implementasi serta analisis algoritma optimasi tersebut. Bab 7 akan memberikan beberapa kesimpulan beserta keterangan lebih lanjut tentang saran-saran dan arah pengembangan lanjutan dari penelitian ini.
