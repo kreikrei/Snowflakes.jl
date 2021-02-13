@@ -310,7 +310,7 @@ function buildSub(n::node,duals::dval)
             if e.t == "≳"
                 @constraint(sp, e.v * η[e] <= getproperty(q,e.q)[e.i,k,t])
             elseif e.t == "<"
-                @constraint(sp,(getproperty(qmax(),e.q)[e.i] - e.v + 1) * η[e] <=
+                @constraint(sp, (getproperty(qmax(),e.q)[e.i] - e.v + 1) * η[e] <=
                     (getproperty(qmax(),e.q)[e.i] - getproperty(q,e.q)[e.i,k,t])
                 )
             end
