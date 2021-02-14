@@ -1,0 +1,110 @@
+BAB 4 Pemodelan Sistem
+
+1. Analisis Permasalahan
+
+Pada bagian ini, akan dijelaskan situasi permasalahan menggunakan Rich Picture Diagram secara bertahap. Permasalahan perencanaan distribusi uang Bank Indonesia merupakan tanggung jawab dari DPU sehingga proses penjabaran situasi permasalahan akan dilakukan dari perspektif DPU: apa saja yang diketahui oleh DPU, apa saja yang dipilih DPU, dan apa saja yang diimplementasikan oleh DPU.
+
+//KHAZANAH
+begin
+  Bank Indonesia memiliki beberapa titik penyimpanan atau khazanah. Setiap khazanah memiliki lokasi yang dapat direpresentasikan dalam sistem koordinat apapun seperti pada `gambar xx` sehingga jarak antartitik dapat dikomputasi dari lokasi masing-masing. Selain itu tiap titik penyimpanan memiliki kapasitas penyimpanan masing-masing serta kebijakan terkait stok terendah yang harus dimiliki. Setiap titik  dapat menerima pengantaran atau menjadi titik penjemputan layanan. Di setiap awal periode perencanaan, setiap titik memiliki tingkat persediaan mula-mula dan selama periode tersebut terdapat aliran komoditas yang dialami tiap titik. Selain itu, setiap titik memiliki biaya untuk tiap unit persediaan yang disimpannya.
+
+  `Gambar kumpulan titik berlokasi`
+end
+
+//KOMODITAS
+begin
+  Komditas pada jaringan ini adalah uang Rupiah. Bank Indonesia merilis banyak pecahan uang, namun pada permasalahan ini diasumsikan kebutuhan tiap pecahan dapat diagregasikan menjadi satuan peti. Tiap titik akan memiliki aliran terekspektasi yang merupakan hasil peramalan DKM dan DPU. Aliran tersebut terbagi menjadi dua, yaitu outflow dan inflow. Pada konteks Bank Indonesia, outflow merupakan aliran uang keluar dari sistem Bank Indonesia – atau uang Rupiah dalam satuan peti yang harus dikeluarkan oleh tiap titik – ke bank komersil dan masyarakat luas, sedangkan inflow terjadi ketika ada arus balik pengembalian uang seperti uang tak layak edar dari bank komersil ke sistem Bank Indonesia. Titik awal, maksimal, dan minimal setiap titik beserta efek dari aliran ini diilustrasikan pada `gambar xx`.
+
+  `Snippet max min start outflow inflow inventory level`
+end
+
+//KENDARAAN
+begin
+  Agar setiap komoditas dapat diantarkan, Bank Indonesia memiliki armada kendaraan. Armada kendaraan Bank Indonesia terdiri dari beberapa kelompok dan setiap kelompok memiliki karakteristik. Sebuah kelompok kendaraan dibedakan oleh kapasitas, set cover, batas penggunaan, serta struktur biaya yang dimiliki. Kapasitas kendaraan adalah jumlah peti keseluruhan yang dapat diangkut oleh sebuah kendaraan dalam sekali penggunaan. Set cover merupakan kumpulan titik yang dapat menjadi destinasi atau asal dari sebuah kendaraan. Setiap kelompok kendaraan memiliki batas penggunaan yang berbeda-beda di tiap titik asal yang mungkin. Sebagai contoh, sebuah kendaraan memiliki set cover {1,2,3,4,5} yang berarti kelompok kendaraan ini dapat memulai perjalanan dari titik 1,2,3,4, dan 5 serta mengunjungi titik yang sama. Namun, jumlah kendaraan di setiap kemungkinan titik mulai adalah berbeda. Pada titik 1 terdapat dua entitas kelompok kendaraan tersebut, pada titik 3 terdapat tiga entitas kelompok kendaraan tersebut, dan tidak ada entitas kelompok kendaraan tersebut di titik lain. Hal ini berarti kelompok kendaraan ini memiliki batas penggunaan sebesar dua pada titik 1, sebesar tiga pada titik 2, dan nol pada titik lainnya. Karakteristik dari sebuah kendaraan diilustrasikan pada `Gambar xx` sebagai pengelompokan titik-titik yang ada di peta sebelumnya.
+
+  `Gambar Set Cover dari sebuah kendaraan beserta penanda jumlah di tiap titik`
+end
+
+//ORIGIN-DESTINATION PATTERN (ODP)
+begin
+  Sebuah kendaraan dapat memiliki beberapa kemungkinan pola asal-destinasi atau origin-destination pattern (ODP), yaitu konfigurasi jumlah yang dijemput dari sebuah titik dan disebar ke titik-titik lain dalam set cover yang dimilikinya. Perlu diingat, untuk sebuah ODP, seluruh peti yang diangkut di awal harus terantarkan seluruhnya. Kemudian, peti yang diangkut tidak boleh melebihi kapasitas dari kelompok kendaraan dari kendaraan tersebut.
+
+  Setiap kelompok kendaraan memiliki berbagai kemungkinan ODP. Sebagai contoh, ada sebuah kendaraan tipe Truk A dengan set cover seperti yang digambarkan oleh `Gambar xx` sebelumnya. Dalam sebuah pengiriman, Truk A dapat memilih untuk mengirimkan 100 peti ke titik 2, 200 peti ke titik 4, dan 100 peti ke titik 5 dan memulai pengantarannya di titik 1.  Namun, dengan kendaraan yang sama dapat terjadi ODP yang berbeda di mana Truk A mengirimkan 200 peti ke titik 2, 100 peti ke titik 1, dan memulai pengantaran di titik 3. Proses penjemputan memiliki biaya tetap yang berhubungan dengan penggunaan sebuah kendaraan. Proses pengantaran sendiri juga memiliki biaya, yaitu biaya yang terkait dengan jarak tempuh kendaraan, biaya yang terkait dengan pengantaran ke sebuah titik tertentu yang analog dengan biaya unloading, dan biaya yang terkait dengan muatan di dalam kendaraan. Pada `Gambar xx` dan `Gambar xx` diberikan contoh dari dua ODP yang diberikan.
+
+  `Gambar ODP 1`
+
+  `Gambar ODP 2`
+
+  Seluruh kemungkinan ODP dari penggunaan sebuah kelompok kendaraan dapat digambarkan sebagai tumpukan layer kemungkinan solusi di atas layer peta khazanah. Ketika sebuah ODP dipilih untuk dieksekusi, jumlah-jumlah peti yang terasosiasi dengan pola tersebut masuk menjadi flow tambahan bagi tingkat persediaan titik-titik yang ada di dalam pola. Sebagai contoh, terpilih sebuah pola pengantaran dan kemudian di eksekusi, tingkat persediaannya akan merupakan sisa dari flow natural ditambah dengan flow dari pola pengantaran seperti diilustrasikan pada `Gambar xx`. Meskipun pada contoh hanya digunakan satu ODP, konsepnya berlaku ketika beberapa ODP dipilih.
+
+  `Gambar efek pengantaran terhadap tingkat persediaan (penumpukan penjumlahan layer)`
+end
+
+//PERIODE
+begin
+  Perlu diingat bahwa proses pemilihan dan eksekusi dari sebuah pola penjemputan-pengantaran dilakukan untuk beberapa periode diskrit yang merupakan horizon perencanaan. Dengan terdapatnya beberapa periode, perlu diperhatikan bahwa tingkat persediaan awal dari sebuah titik pada sebuah periode adalah tingkat persediaan di titik itu pada akhir periode sebelumnya sehingga tingkat persediaan - sebagai sebuah variabel - terikat satu sama lain secara terus menerus oleh waktu.
+end
+
+//PENCARIAN
+begin
+  Tugas Command Center sebagai agen sentral dari sistem distribusi ini adalah menentukan untuk tiap periode, dari seluruh kemungkinan ODP yang ada, mana saja ODP yang akan menjamin setiap khazanah terpenuhi kebutuhannya - dan dapat memenuhi kebutuhan masyarakat - dengan total biaya transportasi serta biaya persediaan yang minimal. Keseluruhan proses yang dilakukan DPU untuk memecahkan IRP-PD diilustrasikan pada `Gambar xx`.
+
+  `Gambar rangkuman dari peta+layers terus jadi peta+layers_terpilih jadi hasil eksekusi`
+end
+
+//PERBEDAAN DENGAN VRP
+begin
+  Perlu ditekankan sekali lagi bahwa IRP memiliki paradigma perencanaan yang berbeda dari permasalahan perutean pada umumnya, seperti VRP, di mana permintaan datang langsung dari cabang atau unit perantara lainnya. Pada IRP secara umum dan IRP-PD secara khusus permintaan yang diestimasi adalah permintaan langsung dari customer yang akan dilayani oleh cabang atau unit perantara lainnya. Di Bank Indonesia, permintaan ini adalah perkiraan kebutuhan masyarakat di setiap daerah.
+end
+
+//ELEMEN PERMASALAHAN
+begin
+  Dari setiap komponen permasalahan yang sudah dijabarkan sebelumnya, dapat diidentifikasi elemen-elemen permasalahan IRP-PD seperti digambarkan pada `Tabel xx`.
+
+  `Tabel 6 elemen permasalahan`
+
+  Dengan bercermin pada definisi decision maker pada Bab 2.x.x serta memperhatikan situasi permasalahan dan rich picture diagram dari sistem dapat disimpulkan bahwa entitas memiliki leverage untuk implementasi solusi adalah DPU melalui Command Center. Di mana tujuan dari sistem ini adalah memastikan pengedaran uang optimal yang bisa didapat melalui kriteria minimasi terhadap ukuran performansi biaya total transportasi dan persediaa. Alternatif tindakan, seperti yang dideskripsikan, adalah semua kemungkinan ODP dari semua kelompok kendaraan. Di dalam pola tersebut ada keputusan apakah sebuah titik dilayani atau tidak, apakah sebuah titik menjadi asal, dan berapa banyak peti yang diangkut dan diantar dari dan ke titik terkait. Sistem ini adalah bagian dari sistem yang lebih besar, yaitu sistem rantai suplai Bank Indonesia, dan terkait dengan komponen-komponennya seperti produksi, peramalan, dan pengadaan. Bersamaan dengan ini, ditunjukkan bahwa elemen permasalahan dapat diekstrak dari situasi permasalahan yang sudah dijabarkan.
+end
+
+//ANALISIS STAKEHOLDER
+begin
+  Selain mengidentifikasi elemen dari permasalahan, perlu dipastikan bahwa pemegang-pemegang kepentingan dari sistem ini terpetakan dengan baik. Pemetaan stakeholder disajikan dalam `tabel xx`.
+
+  `Tabel analisis pemangku kepentingan`
+
+  Peran-peran yang dapat diidentifikasi dalam sistem adalah sebagai berikut. DPU melalui Command Center berperan sebagai pihak yang memiliki kontrol terhadap aspek-aspek dalam permasalahan sehingga disebut sebagai Problem Owner. Salah satu hal yang bisa menjadi perhatian adalah bagaimana DPU memiliki pengaruh penuh terhadap permasalahan ini karena pada saat bersamaan DPU merupakan problem owner dan decision maker. Hasil keputusan dari DPU akan dipakai oleh para penyedia transportasi, staf DPU, supir-supir truk BI, dan petugas-petugas penerimaan uang di satker masing-masing. Entitas-entitas ini berperan sebagai Problem User. Konsekuensi dari lancar atau tidaknya sistem distribusi ini secara langsung memengaruhi bank komersil dan masyarakat Indonesia yang membutuhkan uang untuk bertransaksi sehingga kedua entitas ini disebut sebagai Problem Customer. Terakhir, peneliti menganalisis dan mengembangkan solusi untuk sistem sehingga disebut sebagai Problem Analyst.
+end
+
+3. Model Konseptual
+//ELEMEN MODEL
+begin
+  Berdasarkan analisis permasalahan yang sudah dilakukan dapat dibangun sebuah model konseptual dari permasalahan. Model konseptual yang dibangun akan menjadi dasar dari pengembangan formulasi matematis yang akan dioptimasi. Sebelum model konseptual dibangun, terlebih dahulu diidentifikasi elemen-elemen penting yang harus ada dalam model beserta karakteristiknya. Karakteristik dari elemen sebuah model bisa berupa masukan terkontrol, masukan tidak terkontrol, nilai fungsi, dan variabel. Identifikasi elemen dalam model yang akan dibangun disajikan dalam `tabel xx`. Dari beberapa elemen dapat dilihat bahwa permasalahan merupakan optimasi dengan pembatas karena ada beberapa hal yang merupakan ukuran performansi, namun tidak memiliki kriteria keputusan minimasi atau maksimasi - hanya fisibilitas.
+
+  `tabel elemen model konseptual beserta karakteristik`
+end
+
+//HUBUNGAN ELEMEN
+begin
+  Dari elemen-elemen tersebut akan digambarkan hubungan antarelemennya. Penggambaran model konseptual akan dilakukan menggunakan Influence Diagram seperti diilustrasikan pada `gambar xx`.
+
+  `gambar influence diagram`
+end
+
+4. Formulasi Matematis
+begin
+  Terdapat sekumpulan titik V di mana setiap titik fn(i in V) memiliki kapasitas maksimal fn(MAX_i), minimal fn(MIN_i), tingkat awal persediaan fn(START_i), dan biaya persediaan fn(h_i). Setiap titik memiliki koordinat masing-masing sehingga dapat dikomputasi matriks jarak antartitik fn(dist_ij) dengan fn(i,j in V). Sebuah titik dapat memiliki status sebagai fasilitas produksi yang interpretasinya dikembalikan ke tiap-tiap perencana. Untuk mengakomodasi aliran dari produksi dalam model, fasilitas produksi memiliki minimal persediaan bernilai negatif tak hingga.
+
+  Terdapat sekumpulan kendaraan K di mana tiap kelompok kendaraan fn(k in K) memiliki kapasitas tiap penggunaan fn(Q_k), set cover fn(cov_k), serta batas penggunaan kendaraan tersebut di tiap titik fn(BP_ik forall i in cov). Selain itu, kendaraan memiliki struktur biaya sebagai berikut: fn(vx_k) adalah biaya yang terkait dengan penggunaan sebuah segmen ij untuk perpindahan komoditas, fn(vl_k) adalah biaya yang terkait dengan muatan kendaraan ketika berpindah menggunakan segmen ij, fn(fp_k) adalah biaya tetap terkait penggunaan kendaraan dari sebuah titik, dan fn(fd_k) adalah biaya tetap pengantaran per peti. Di setiap set cover sebuah kendaraan, terdapat nilai batas penggunaan dari sebuah kelompok kendaraan fn(BP_ik).
+
+  Terdapat himpunan periode diskrit T yang merupakan horizon perencanaan dari IRP-PD. Di setiap titik fn(i in V) dan setipa periode fn(t in T) terdapat aliran peti yang disebut fn(d_it) yang dapat memiliki nilai positif jika merupakan sebuah outflow - aliran peti ke bank komersil dan masyarakat - atau nilai negatif jika merupaka sebuah inflow - retur peti ke Bank Indonesia.
+
+  Diperkenalkan tiga variabel biner: fn(x_ijmkt forall i,j in V, m in {1,...,sum(BP_ik for i in cov_k)}, k in K, t in T) fn(y_imkt forall i in V, m in {1,...,sum(BP_ik for i in cov_k)}, k in K, t in T), dan fn(z_imkt forall i in V, m in {1,...,BP_ik}, k in K, t in T). Variabel x menyatakan apakah sebuah segmen ij digunakan untuk penggunaan ke m kelompok kendaraan k pada periode t. Variabel y menyatakan apakah sebuah titik i menjadi titik destinasi penggunaan ke m kelompok kendaraan k pada periode t. Variabel z menyatakan apakah sebuah titik i menjadi titik asal penggunaan ke m kelommpok kendaraan k pada periode t. Bersamaan dengan variabel biner, terdapat variabel bilangan bulat yang berkorespondensi, yaitu: fn(l_ijmkt forall i,j in V, m in {1,...,sum(BP_ik for i in cov_k)}, k in K, t in T) fn(u_imkt forall i in V, m in {1,...,sum(BP_ik for i in cov_k)}, k in K, t in T), dan fn(v_imkt forall i in V, m in {1,...,BP_ik}, k in K, t in T). Variabel l menyatakan nilai muatan kendaraan ketika berpindah dari titik i ke titik j pada penggunaan ke m kendaraan k periode t. Variabel u menyatakan jumlah peti yang diantarkan ke titik i oleh penggunaan ke m kendaraan k pada periode t. Variabel v menyatakan jumlah peti yang diangkut dari sebuah titik i oleh penggunaan ke m kendaraan k pada periode t. Rangkuman nomenklatur dari formulasi matematis terdapat pada `Tabel xx`.
+
+  `Tabel Nomenklatur Formulasi Matematis`
+
+  Dengan model konseptual yang sudah dibangun beserta seluruh penamaan terjabarkan, dibangun formulasi (P) untuk IRP-PD sebagai berikut.
+
+  `Model (P)`
+
+  Persamaan (1) menyatakan fungsi objektif dari (P) yang merupakan total biaya transportasi dari seluruh penggunaan kendaraan seluruh periode dan biaya persediaan setiap titik seluruh periode. Persamaan (2) adalah persamaan kesetimbangan persediaan di tiap titik di mana tingkat persediaan di akhir periode merupakan tingkat persediaan di awal periode ditambah dengan peti yang datang, dikurangi peti yang keluar. Persamaan (3) adalah pembatas nilai tingkat persediaan. Persamaan (4) mendefinisikan tingkat persediaan di awal perencanaan. Persamaan (5) menyatakan bahwa jumlah seluruh peti yang dijemput sama dengan jumlah seluruh peti yang diantar. Persamaan (6) dan (7) menyatakan hubungan keputusan pengantaran dan penjemputan dengan jumlah peti yang dapat diantar dan dijemput oleh sebuah penggunaan kendaraan. Persamaan (8) dan (9) membatasi penggunaan kendaraan yang masuk ke sebuah titik dan keluar dari sebuah titik sebesar jumlah layanan yang terjadi pada titik tersebut baik pengantaran atau penjemputan. Persamaan (10) menyatakan bahwa selisih muatan kendaraan saat masuk dan keluar dari sebuah titik adalah resultan pengantaran penjemputan peti yang terjadi di titik tersebut. Persamaan (12) membatasi penggunaan sebuah kendaraan yang dimulai dari titik i pada fn(BP_ik). Persamaan (13) sampai (16) mendefinisikan variabel-variabel yang digunakan.
+end
