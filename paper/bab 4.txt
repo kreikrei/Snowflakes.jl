@@ -13,7 +13,7 @@ end
 
 //KOMODITAS
 begin
-  Komditas pada jaringan ini adalah uang Rupiah. Bank Indonesia merilis banyak pecahan uang, namun pada permasalahan ini diasumsikan kebutuhan tiap pecahan dapat diagregasikan menjadi satuan peti. Tiap titik akan memiliki aliran terekspektasi yang merupakan hasil peramalan DKM dan DPU. Aliran tersebut terbagi menjadi dua, yaitu outflow dan inflow. Pada konteks Bank Indonesia, outflow merupakan aliran uang keluar dari sistem Bank Indonesia – atau uang Rupiah dalam satuan peti yang harus dikeluarkan oleh tiap titik – ke bank komersil dan masyarakat luas, sedangkan inflow terjadi ketika ada arus balik pengembalian uang seperti uang tak layak edar dari bank komersil ke sistem Bank Indonesia. Titik awal, maksimal, dan minimal setiap titik beserta efek dari aliran ini diilustrasikan pada `gambar xx`.
+  Komoditas pada jaringan ini adalah uang Rupiah. Bank Indonesia merilis banyak pecahan uang, namun pada permasalahan ini diasumsikan kebutuhan tiap pecahan dapat diagregasikan menjadi satuan peti. Tiap titik akan memiliki aliran terekspektasi yang merupakan hasil peramalan DKM dan DPU. Aliran tersebut terbagi menjadi dua, yaitu outflow dan inflow. Pada konteks Bank Indonesia, outflow merupakan aliran uang keluar dari sistem Bank Indonesia – atau uang Rupiah dalam satuan peti yang harus dikeluarkan oleh tiap titik – ke bank komersil dan masyarakat luas, sedangkan inflow terjadi ketika ada arus balik pengembalian uang seperti uang tak layak edar dari bank komersil ke sistem Bank Indonesia. Titik awal, maksimal, dan minimal setiap titik beserta efek dari aliran ini diilustrasikan pada `gambar xx`.
 
   `Snippet max min start outflow inflow inventory level`
 end
