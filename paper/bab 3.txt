@@ -1,3 +1,29 @@
 BAB 3 Metodologi
-    1. Asumsi Hard OR
-    2. Skema Metodologi
+
+1. Hard OR Metodologi
+Secara umum, metodologi yang digunakan dalam penelitian ini adalah metodologi Hard OR menurut `Daellenbach & McNickle (2005)`. Metodologi ini dipilih karena kesesuaian kondisi permasalahan Bank Indonesia dengan asumsi-asumsi dasar metodologi Hard OR. Perbandingan antara kondisi permasalahan Bank Indonesia dengan asumsi-asumsi dasar metodologi Hard OR disajikan `Tabel xx`
+
+`Tabel PERBANDINGAN KONDISI DENGAN ASUMSI`
+
+Keseluruhan metodologi Hard OR diilustrasikan pada `Gambar xx` di mana metodologi ini terdiri dari tiga kelompok aktivitas yang saling berhubungan satu sama lain, yaitu 1) Formulation or Problem Scoping, 2) Modeling, dan 3) Implementation. Pada penelitian ini, implementasi tidak menjadi ruang lingkup dari penelitian ini sehingga kegiatan akan dibatasi pada Formulation or Problem Scoping dan Modeling. Pada keduda kelompok aktivitas yang masuk ruang lingkup, langkah-langkah yang harus dilakukan adalah sebagai berikut:
+
+  a. Formulation or Problem Scoping
+    - Summarize Problem Situation
+      Pada tahap ini, isu yang akan dianalisis difokuskan menggunakan alat bantu seperti mind map dan rich picture diagram agar gambaran penuh dari konteks permasalahan bisa didapatkan.
+    - Identify Problem for Analysis
+      Pada tahap ini, pemahaman akan situasi permasalahan akan digunakan untuk mengidentifikasi permasalahan. Hal ini dilakukan dengan mengidentifikasi keenam elemen permasalahan serta para pemangku kepentingan dan peran yang diambil dalam permasalahan.
+    - Describing the Relevant System
+      Menggambarkan sistem relevan biasanya akan membutuhkan bantuan diagram. Di tahap ini, akan digunakan influence diagram untuk menciptakan model konseptual dari sistem.
+  b. Modeling
+    - Building a Mathematical Model
+      Dari model konseptual yang ada, akan dihasilkan formulasi matematis dari permasalahan yang akan diselesaikan. Hal ini dilakukan dengan melakukan finalisasi definisi sistem relevan hingga ke detail yang dibutuhkan untuk mengekspresikan tiap komponen secara kuantitatif. Bila model konseptual mengikuti sebuah struktur yang sudah lazim, yang perlu dilakukan adalah mengulik lagi detail yang ada.
+    - Finding Preferred Solution
+      Model yang sudah diciptakan akan dimanipulasi untuk mengeksplorasi respons sistem terhadap perubahan dalam masukan baik yang terkontrol atau tidak. Permasalahan Bank Indonesia adalah besar sehingga untuk dapat memanipulasinya perlu dikembangkan algoritma tersendiri.
+    - Testing and Validation
+      Pengujian dan validasi mengukuhkan kredibilitas model. Validasi memiliki dua sisi:
+      a. Validasi Internal  : Memastikan model benar secara matematis dan logis serta data yang digunakan adalah benar.
+      b. Validasi Eksternal : Memeriksa apakah model cukup merepresentasikan sistem nyata dan apakah model memberikan wawasan dan jawaban yang berguna dalam pengambilan keputusan
+    - Sensitivity Analysis
+      Pada analisis sensitivitas, pertanyaan tentang bagaimana solusi optimal dipengaruhi oleh perubahan dari masukan ke dalam sistem dijawab.
+
+2. Skema Metodologi
