@@ -1,11 +1,15 @@
 BAB 3 Metodologi
 
-1. Hard OR Metodologi
+1. Metodologi Hard OR
 Secara umum, metodologi yang digunakan dalam penelitian ini adalah metodologi Hard OR menurut `Daellenbach & McNickle (2005)`. Metodologi ini dipilih karena kesesuaian kondisi permasalahan Bank Indonesia dengan asumsi-asumsi dasar metodologi Hard OR. Perbandingan antara kondisi permasalahan Bank Indonesia dengan asumsi-asumsi dasar metodologi Hard OR disajikan `Tabel xx`
 
 `Tabel PERBANDINGAN KONDISI DENGAN ASUMSI`
 
-Keseluruhan metodologi Hard OR diilustrasikan pada `Gambar xx` di mana metodologi ini terdiri dari tiga kelompok aktivitas yang saling berhubungan satu sama lain, yaitu 1) Formulation or Problem Scoping, 2) Modeling, dan 3) Implementation. Pada penelitian ini, implementasi tidak menjadi ruang lingkup dari penelitian ini sehingga kegiatan akan dibatasi pada Formulation or Problem Scoping dan Modeling. Pada keduda kelompok aktivitas yang masuk ruang lingkup, langkah-langkah yang harus dilakukan adalah sebagai berikut:
+Keseluruhan metodologi Hard OR diilustrasikan pada `Gambar xx` di mana metodologi ini terdiri dari tiga kelompok aktivitas yang saling berhubungan satu sama lain, yaitu 1) Formulation or Problem Scoping, 2) Modeling, dan 3) Implementation.
+
+`Gambar bulet2 metodologi hard OR`
+
+Pada penelitian ini, implementasi tidak menjadi ruang lingkup dari penelitian ini sehingga kegiatan akan dibatasi pada Formulation or Problem Scoping dan Modeling. Pada keduda kelompok aktivitas yang masuk ruang lingkup, langkah-langkah yang harus dilakukan adalah sebagai berikut:
 
   a. Formulation or Problem Scoping
     - Summarize Problem Situation
@@ -27,3 +31,35 @@ Keseluruhan metodologi Hard OR diilustrasikan pada `Gambar xx` di mana metodolog
       Pada analisis sensitivitas, pertanyaan tentang bagaimana solusi optimal dipengaruhi oleh perubahan dari masukan ke dalam sistem dijawab.
 
 2. Skema Metodologi
+Mengikuti tahapan metodologi Hard OR, penelitian ini, secara garis besar memiliki tahapan sebagai berikut.
+
+`Skema metodologi`
+
+  a. Studi Pendahuluan
+    Studi Pendahuluan mengawali rangkaian penelitian dengan melakukan pemahaman awal yang mendalam terkait objek melalui wawancara, observasi langsung, dan desktop research. Kegiatan memahami akan terus beriterasi seiring dengan percobaan-percobaan yang dilakukan untuk membangun model yang representatif.
+  b. Problem Scoping
+    - Problem Situation Summary
+      Digunakan rich picture diagram untuk menggambarkan konteks dan hal esensial lain terkait permasalahan.
+    - Problem Identification
+      Dari rich picture diagram, akan diidentifikasi enam elemen permasalahan beserta pemangku kepentingan yang ada dan peran-perannya dalam permasalahan.
+    - Relevant System
+      Dibuat model konseptual yang menggambarkan bagaimana sistem mengambil masukan dan berperforma. Untuk membangun model konseptual, digunakan influence diagram.
+  c. Pengembangan Model
+    Dilakukan formulasi matematis untuk permasalahan IRP-PD Bank Indonesia.
+  d. Pengembangan Algoritma
+    Berdasarkan prinsip-prinsip dekomposisi, dilakukan manipulasi terhadap model matematis yang dibangun untuk dapat mengeksplorasi raung solusi yang dimiliki.
+  e. Implementasi Eksperimentasi
+    - Lingkungan Implementasi
+    Pada bagian ini dijelaskan dengan bahasa apa implementasi algoritma dilakukan beserta spesifikasi komputer yang digunakan untuk melakukan keseluruhan rangkaian pengujian.
+    - Pengembangan Data Eksperimen
+    Untuk dapat memastikan bahwa eksperimen dengan model dan algoritma menghasilkan analisis yang berguna, perlu dibuat data eksperimen yang representatif akan sistem nyata dan mencakup kasus-kasus yang mungkin terjadi pada implementasinya.
+    - Verifikasi dan Validasi
+    Verifikasi dilakukan dengan melakukan pengecekan terhadap data yang digunakan, satuan-satuan di dalam model, serta langkah-langkah yang dilakukan oleh algoritma. Validasi dilakukan dengan melihat hasil dari model dan algoritma kemudian membandingkannya dengan kemungkinan terjadinya di kenyataan. Karena sistem merupakan sebuah usulan, aproksimasi kasar terhadap kenyataan adalah cukup.
+    - Kompleksitas Algoritma
+    Untuk mendapatkan gambaran kasar terhadap kompleksitas algoritma, dilakukan pengujian berulang menggunakan set data dengan pola yang sama, namun ukuran yang berbeda-beda. Dengan melihat bagaimana performa algoritma seiring dengan pertumbuhan ukuran permasalahan, kompleksitas dapat diinferensi.
+    - Batas Bawah
+    Algoritma dekomposisi digadang-gadang menghasilkan solusi relaksasi - yang merupakan batas bawah permasalahan - yang lebih tinggi dibandingkan formulasi simplex biasa. Akan dilakukan perbandingan antara hasil solusi relaksasi formulasi biasa dengan formulasi dekomposisi.
+    - Analisis Sensitivitas
+    Akan dilakukan eksplorasi terkait seberapa sensitif parameter-parameter dari model yang dibangun dengan mengembangkan data di mana masukan-masukan tidak terkontrolnya bervariasi.
+    f. Implikasi Manajerial
+    Pengembangan model sebagai sebuah teknologi akan selalu memiliki implikasi secara manajerial yang memengaruhi efisiensi atau efektivitas bisnis. Pada bagian ini akan diteliti kemungkinan apa saja yang dapat terjadi melalui dikembangkannya IRP-PD.

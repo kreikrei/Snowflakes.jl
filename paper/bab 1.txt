@@ -65,6 +65,11 @@ begin
   Sistem yang ingin diimplementasikan oleh Bank Indonesia melalui DPU memiliki banyak kemiripan aspek dengan PDP. Setiap khazanah akan memiliki kebutuhan implisit yang berasal dari persediaan dibandingkan dengan tingkat kebutuhan masyarakat di mana kebutuhan-kebutuhan tersebut harus dijemput dari sebuah titik oleh kendaraan-kendaraan yang ada kemudian disebarkan ke titik yang membutuhkan. Sedikit perbedaan adalah pada PDP sebagian besar permintaan bersifat eksplisit, sedangkan besar pengantaran adalah hal yang akan ditentukan oleh pengambil keputusan pada sistem yang ingin diimplementasikan oleh Bank Indonesia.
 end
 
+//DEKOMPOSISI DANTZIG-WOLFE
+begin
+  Permasalahan IRP-PD merupakan masalah optimasi kombinatorial dan secara khusus pada kasus Bank Indonesia optimasi skala besar. Salah satu metode paling sukses dalam menyelesaikan masalah skala besar adalah metode Column Generation yang didasarkan pada prinsip dekomposisi Dantzig-Wolfe `(Lasdon, 19xx)`. Semenjak publikasinya pada tahun 19xx, prinsip dekomposisi Dantzig-Wolfe sudah sangat berkembang dan diimplementasikan pada beberapa kasus IRP dalam bentuk yang dinamakan branch-and-price.
+end
+
 IRP-PD memiliki peluang pengembangan yang besar dengan lebih mengedepankan fleksibilitas sehingga berpeluan memiliki ketangguhan dalam menanggapi ketidakpastian. Di dalam penelitian ini, akan dikembangkan model dan algoritma optimasi dengan pendekatan dekomposisi yang dapat menyelesaikan permasalahan IRP-PD. Akan didemonstrasikan, bagaimana model serta algoritma yang dirancang dapat memberikan solusi mendekati optimal untuk permasalahan IRP-PD sebagai sistem usulan distribusi uang Rupiah Bank Indonesia dengan ukuran permasalahan realistis.
 
 2. Rumusan Masalah
