@@ -6,7 +6,7 @@ const template_data = Ref{Any}(nothing)
 b() = template_data[] #buat manggil dt default
 
 const max_i = Ref{Any}(nothing)
-qmax() = max_i[] #buat manggil nilai max di i
+rmax() = max_i[] #buat manggil nilai max di i
 
 function imax(res=b())
     val = col(
@@ -19,19 +19,25 @@ function imax(res=b())
     )
 
     for i in keys(res.V)
-        u = [length(res.K[k].cover) * res.K[k].freq * res.K[k].Q for k in keys(res.K)
-        if i in res.K[k].cover]
-        v = [res.K[k].freq * res.K[k].Q for k in keys(res.K) if i in res.K[k].cover]
+        z = [res.K[k].BP[i] for k in keys(res.K)
+            if i in res.K[k].cover
+        ]
+        val.z[i] = findmax(z)[1] #dapet nilai max z tiap titik
 
-        y = [length(res.K[k].cover) * res.K[k].freq for k in keys(res.K)
-        if i in res.K[k].cover]
-        z = [res.K[k].freq for k in keys(res.K) if i in res.K[k].cover]
+        y = [sum(res.K[k].BP[p] for p in res.K[k].cover) for k in keys(res.K)
+            if i in res.K[k].cover
+        ]
+        val.y[i] = findmax(y)[1] #dapet nilai max z tiap titik
 
-        val.u[i] = findmax(u)[1]
+        v = [res.K[k].BP[i] * res.K[k].Q for k in keys(res.K)
+            if i in res.K[k].cover
+        ]
         val.v[i] = findmax(v)[1]
-        
-        val.y[i] = findmax(y)[1]
-        val.z[i] = findmax(z)[1]
+
+        u = [sum(res.K[k].BP[p] for p in res.K[k].cover) * res.K[k].Q
+            for k in keys(res.K) if i in res.K[k].cover
+        ]
+        val.u[i] = findmax(u)[1]
     end
 
     return max_i[] = val
@@ -68,7 +74,8 @@ function extract!(path::String) #extract from excel
     for k in eachrow(data[:vehicles]) #ITERATE OVER DATA
         K[k.id] = veh(
             k.name, k.type,
-            parse.(Int64,split(k.cover)), k.freq, k.Q,
+            parse.(Int64,split(k.cover)),
+            Dict(parse.(Int64,split(k.cover)) .=>  parse.(Int64,split(k.BP))), k.Q,
             k.vx, k.vl, k.fp, k.fd
         )
     end

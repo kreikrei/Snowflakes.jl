@@ -33,7 +33,7 @@ export set_silence!
 export silent
 
 export b
-export qmax
+export rmax
 export imax
 export extract!
 export stats

@@ -25,7 +25,7 @@ struct veh
 
     #CHAR
     cover::Vector{Int64}
-    freq::Int64
+    BP::Dict{Int64,Int64}
     Q::Int64
 
     #COSTS
