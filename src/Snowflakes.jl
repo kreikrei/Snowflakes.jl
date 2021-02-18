@@ -56,6 +56,7 @@ export colGen
 
 export separate
 export vtest
+export Btest
 export integerCheck
 export createBranch
 

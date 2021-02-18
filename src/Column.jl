@@ -197,7 +197,7 @@ function buildSub(n::node,duals::dval)
         ),
         @variable(sp, y[keys(b().V), keys(b().K), b().T] >= 0, Int),
         @variable(sp, 0 <= z[i = keys(b().V), k = keys(b().K), t = b().T] <=
-            b().K[k].freq, Int
+            b().K[k].BP[i], Int
         ),
         @variable(sp,
             x[collect(keys(b().V)), collect(keys(b().V)), collect(keys(b().K)), b().T] >=
@@ -303,7 +303,7 @@ function buildSub(n::node,duals::dval)
         @constraint(sp, -g[j,k,t] >= 1 - sum(1 - η[e] for e in B[j].B))
         for e in B[j].B
             if e.t == "≳"
-                @constraint(sp, (getproperty(qmax(),e.q)[e.i] - e.v + 1) * η[e] >=
+                @constraint(sp, (getproperty(rmax(),e.q)[e.i] - e.v + 1) * η[e] >=
                     getproperty(q,e.q)[e.i,k,t] - e.v + 1
                 )
             elseif e.t == "<"
@@ -320,8 +320,8 @@ function buildSub(n::node,duals::dval)
             if e.t == "≳"
                 @constraint(sp, e.v * η[e] <= getproperty(q,e.q)[e.i,k,t])
             elseif e.t == "<"
-                @constraint(sp, (getproperty(qmax(),e.q)[e.i] - e.v + 1) * η[e] <=
-                    (getproperty(qmax(),e.q)[e.i] - getproperty(q,e.q)[e.i,k,t])
+                @constraint(sp, (getproperty(rmax(),e.q)[e.i] - e.v + 1) * η[e] <=
+                    (getproperty(rmax(),e.q)[e.i] - getproperty(q,e.q)[e.i,k,t])
                 )
             end
         end
